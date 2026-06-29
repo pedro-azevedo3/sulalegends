@@ -1,65 +1,96 @@
-import Image from "next/image";
+'use client'
 
-export default function Home() {
+import { useMemo } from 'react'
+import { useGame } from '@/hooks/useGame'
+import { buildSlots } from '@/lib/game'
+import HomeScreen        from '@/components/screens/HomeScreen'
+import ConfigScreen      from '@/components/screens/ConfigScreen'
+import DraftScreen       from '@/components/screens/DraftScreen'
+import SquadScreen       from '@/components/screens/SquadScreen'
+import MatchScreen       from '@/components/screens/MatchScreen'
+import ResultScreen      from '@/components/screens/ResultScreen'
+import TournamentScreen  from '@/components/screens/TournamentScreen'
+import type { SlotView } from '@/hooks/useGame'
+
+const STEP_LABEL: Record<string, string> = {
+  config: 'Montar Time', draft: 'Sorteio', squad: 'Escalação',
+  match: 'Partida', result: 'Resultado', libertadores: 'Libertadores',
+}
+
+export default function GamePage() {
+  const { state, actions, slotViews } = useGame()
+  const { screen } = state
+
+  const slots: SlotView[] = useMemo(() => {
+    if (screen === 'config') {
+      return buildSlots(state.formation).map(s => ({
+        pos: s.pos, x: s.x, y: s.y, filled: false, empty: true,
+        player: null, preview: false, selectable: false, dimmed: false, onSelect: null,
+      }))
+    }
+    if (state.slots) return slotViews(state)
+    return []
+  }, [state, screen, slotViews])
+
+  // Finish match handler — routes differently based on context
+  function handleFinishMatch() {
+    if (state.tournamentCtx) actions.finishTournamentMatch()
+    else actions.finishMatch()
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div style={{
+      minHeight: '100vh',
+      background: 'radial-gradient(120% 90% at 50% -10%, #11301f 0%, #0a1711 45%, #060c09 100%)',
+      fontFamily: "'Barlow',sans-serif", color: '#eafff0',
+      display: 'flex', flexDirection: 'column', alignItems: 'stretch',
+    }}>
+      {/* Top bar */}
+      {screen !== 'home' && (
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
+          padding: '12px 16px', borderBottom: '1px solid rgba(255,255,255,.07)',
+          background: 'rgba(6,12,9,.6)', backdropFilter: 'blur(8px)',
+          position: 'sticky', top: 0, zIndex: 20,
+        }}>
+          <div style={{ fontFamily: "'Anton',sans-serif", fontSize: 22, letterSpacing: 1, background: 'linear-gradient(135deg,#fbe08a,#e0b54a)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}>
+            SULALEGENDS
+          </div>
+          <div style={{ fontFamily: "'Barlow Condensed',sans-serif", fontWeight: 600, fontSize: 13, color: '#9fd9b6', textTransform: 'uppercase', letterSpacing: 1, background: 'rgba(46,227,122,.1)', padding: '5px 12px', borderRadius: 999, border: '1px solid rgba(46,227,122,.25)' }}>
+            {STEP_LABEL[screen] || ''}
+          </div>
+          <button onClick={actions.restart} style={{ background: 'rgba(255,255,255,.06)', color: '#eafff0', border: '1px solid rgba(255,255,255,.14)', padding: '8px 14px', borderRadius: 9, fontFamily: "'Barlow',sans-serif", fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
+            Reiniciar
+          </button>
+        </div>
+      )}
+
+      {/* Screens */}
+      {screen === 'home'         && <HomeScreen onPlay={actions.goToConfig} />}
+      {screen === 'config'       && (
+        <ConfigScreen state={state} previewSlots={slots}
+          onFormation={actions.selectFormation} onStyle={actions.setStyle}
+          onDiff={actions.setDiff} onStart={actions.goToDraft} />
+      )}
+      {screen === 'draft'        && (
+        <DraftScreen state={state} slots={slots}
+          onSlotClick={actions.chooseSlot}
+          onTapPlayer={actions.tapPlayer}
+          onCancel={actions.cancelPlacement}
+          onAdvanceTeam={actions.advanceToNextTeam} />
+      )}
+      {screen === 'squad'        && <SquadScreen state={state} slots={slots} onPlay={actions.enterLibertadores} />}
+      {screen === 'match'        && <MatchScreen state={state} onSkip={actions.skipReveal} onFinish={handleFinishMatch} />}
+      {screen === 'result'       && <ResultScreen state={state} onPlayAgain={actions.goToConfig} onHome={actions.home} />}
+      {screen === 'libertadores' && state.libertadores && (
+        <TournamentScreen
+          tournament={state.libertadores}
+          squad={state.slots ?? []}
+          onPlayMatch={actions.startTournamentMatch}
+          onPlayAgain={actions.goToConfig}
+          onHome={actions.home}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+      )}
     </div>
-  );
+  )
 }
