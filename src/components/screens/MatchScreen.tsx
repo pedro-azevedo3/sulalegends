@@ -6,10 +6,11 @@ import { cleanName } from '@/lib/game'
 interface Props {
   state: GameState
   onSkip: () => void
-  onFinish: () => void          // handles both tournament + standalone
+  onFinish: () => void           // "Ver Tabela" / standalone result
+  onNextMatch?: () => void       // "Próximo Jogo" (tournament only)
 }
 
-export default function MatchScreen({ state, onSkip, onFinish }: Props) {
+export default function MatchScreen({ state, onSkip, onFinish, onNextMatch }: Props) {
   const { sim, scoreP, scoreC, simDone, tournamentCtx } = state
   if (!sim) return null
 
@@ -76,24 +77,57 @@ export default function MatchScreen({ state, onSkip, onFinish }: Props) {
             Pular ⏩
           </button>
         )}
-        {simDone && (
+        {simDone && inTournament && (
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
+            {/* Próximo Jogo */}
+            {onNextMatch && (
+              <button
+                onClick={onNextMatch}
+                style={{
+                  background: 'linear-gradient(135deg,#2ee37a,#16a34a)', color: '#04140d',
+                  fontFamily: "'Anton',sans-serif", letterSpacing: 1, fontSize: 17,
+                  padding: '14px 28px', border: 'none', borderRadius: 12, cursor: 'pointer',
+                  boxShadow: '0 5px 0 #0d7a36', transition: 'transform .12s', whiteSpace: 'nowrap',
+                }}
+                onMouseDown={e => (e.currentTarget.style.transform = 'translateY(3px)')}
+                onMouseUp={e => (e.currentTarget.style.transform = '')}
+                onMouseLeave={e => (e.currentTarget.style.transform = '')}
+              >
+                ⚡ Próximo Jogo
+              </button>
+            )}
+            {/* Ver Tabela */}
+            <button
+              onClick={onFinish}
+              style={{
+                background: 'rgba(255,255,255,.08)', color: '#eafff0',
+                fontFamily: "'Anton',sans-serif", letterSpacing: 1, fontSize: 17,
+                padding: '14px 28px', border: '1px solid rgba(255,255,255,.2)',
+                borderRadius: 12, cursor: 'pointer', transition: 'transform .12s', whiteSpace: 'nowrap',
+              }}
+              onMouseDown={e => (e.currentTarget.style.transform = 'translateY(3px)')}
+              onMouseUp={e => (e.currentTarget.style.transform = '')}
+              onMouseLeave={e => (e.currentTarget.style.transform = '')}
+            >
+              📊 Ver Tabela
+            </button>
+          </div>
+        )}
+
+        {simDone && !inTournament && (
           <button
             onClick={onFinish}
             style={{
-              background: inTournament
-                ? 'linear-gradient(135deg,#f5c84b,#e0a040)'
-                : 'linear-gradient(135deg,#2ee37a,#16a34a)',
-              color: inTournament ? '#1a1000' : '#04140d',
+              background: 'linear-gradient(135deg,#2ee37a,#16a34a)', color: '#04140d',
               fontFamily: "'Anton',sans-serif", letterSpacing: 1, fontSize: 19,
               padding: '14px 40px', border: 'none', borderRadius: 12, cursor: 'pointer',
-              boxShadow: inTournament ? '0 5px 0 #a87320' : '0 5px 0 #0d7a36',
-              transition: 'transform .12s',
+              boxShadow: '0 5px 0 #0d7a36', transition: 'transform .12s',
             }}
             onMouseDown={e => (e.currentTarget.style.transform = 'translateY(3px)')}
             onMouseUp={e => (e.currentTarget.style.transform = '')}
             onMouseLeave={e => (e.currentTarget.style.transform = '')}
           >
-            {inTournament ? 'VOLTAR À LIBERTADORES 🏆' : 'VER RESULTADO →'}
+            VER RESULTADO →
           </button>
         )}
       </div>

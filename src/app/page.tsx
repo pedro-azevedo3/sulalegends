@@ -80,7 +80,14 @@ export default function GamePage() {
           onAdvanceTeam={actions.advanceToNextTeam} />
       )}
       {screen === 'squad'        && <SquadScreen state={state} slots={slots} onPlay={actions.enterLibertadores} />}
-      {screen === 'match'        && <MatchScreen state={state} onSkip={actions.skipReveal} onFinish={handleFinishMatch} />}
+      {screen === 'match'        && (
+        <MatchScreen
+          state={state}
+          onSkip={actions.skipReveal}
+          onFinish={handleFinishMatch}
+          onNextMatch={state.tournamentCtx ? actions.continueToNextMatch : undefined}
+        />
+      )}
       {screen === 'result'       && <ResultScreen state={state} onPlayAgain={actions.goToConfig} onHome={actions.home} />}
       {screen === 'libertadores' && state.libertadores && (
         <TournamentScreen

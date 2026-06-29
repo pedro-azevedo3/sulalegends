@@ -159,24 +159,71 @@ export function useGame() {
   // ── Finish tournament match → apply result → back to bracket ──
   const finishTournamentMatch = useCallback(() => {
     setState(prev => {
-      if (!prev.tournamentCtx || !prev.libertadores) {
-        return { ...prev, screen: 'result' }
-      }
+      if (!prev.tournamentCtx || !prev.libertadores) return { ...prev, screen: 'result' }
       const { matchId, isUserHome } = prev.tournamentCtx
       const homeGoals = isUserHome ? prev.scoreP : prev.scoreC
       const awayGoals = isUserHome ? prev.scoreC : prev.scoreP
-      const str = userTeamStrength(prev.slots)
+      const updated = applyMatchResult(prev.libertadores, matchId, homeGoals, awayGoals, userTeamStrength(prev.slots))
+      return { ...prev, screen: 'libertadores', libertadores: updated, tournamentCtx: null }
+    })
+  }, [])
 
-      const updated = applyMatchResult(prev.libertadores, matchId, homeGoals, awayGoals, str)
+  // ── "Próximo Jogo" — apply result then immediately start next match ──
+  const continueToNextMatch = useCallback(() => {
+    clearTimer()
+    setState(prev => {
+      if (!prev.tournamentCtx || !prev.libertadores) return { ...prev, screen: 'libertadores' }
+
+      const { matchId, isUserHome } = prev.tournamentCtx
+      const homeGoals = isUserHome ? prev.scoreP : prev.scoreC
+      const awayGoals = isUserHome ? prev.scoreC : prev.scoreP
+      const updated = applyMatchResult(prev.libertadores, matchId, homeGoals, awayGoals, userTeamStrength(prev.slots))
+
+      // No next user match → go to tournament screen
+      const nextId = updated.nextUserMatchId
+      if (!nextId || !updated.matches[nextId]) {
+        return { ...prev, libertadores: updated, screen: 'libertadores', tournamentCtx: null }
+      }
+
+      // Set up next match immediately
+      const nextMatch = updated.matches[nextId]
+      const opponent   = nextMatch.home === 'SULALEGENDS' ? nextMatch.away : nextMatch.home
+      const nextIsHome = nextMatch.home === 'SULALEGENDS'
+      const sim = simulate(prev, { cpuClub: opponent })
+
+      // Start timer after React commits
+      if (sim.events.length > 0) {
+        setTimeout(() => {
+          timerRef.current = setInterval(() => {
+            setState(st => {
+              if (!st.sim) return st
+              const i = st.revealIdx
+              if (i >= st.sim.events.length) { clearTimer(); return { ...st, simDone: true } }
+              const e = st.sim.events[i]
+              const done = i + 1 >= st.sim.events.length
+              if (done) clearTimer()
+              return {
+                ...st, revealIdx: i + 1,
+                scoreP: st.scoreP + (e.team === 'p' ? 1 : 0),
+                scoreC: st.scoreC + (e.team === 'c' ? 1 : 0),
+                simDone: done,
+              }
+            })
+          }, 1150)
+        }, 0)
+      }
 
       return {
         ...prev,
-        screen: 'libertadores',
         libertadores: updated,
-        tournamentCtx: null,
+        screen: 'match',
+        sim,
+        revealIdx: 0, scoreP: 0, scoreC: 0,
+        simDone: sim.events.length === 0,
+        tournamentCtx: { matchId: nextId, opponentClub: opponent, isUserHome: nextIsHome },
       }
     })
-  }, [])
+  }, [clearTimer])
 
   // ── Standalone match flow (non-tournament) ─────────────────────
   const playMatch = useCallback(() => {
@@ -232,7 +279,7 @@ export function useGame() {
       selectFormation, setStyle, setDiff,
       reroll, tapPlayer, chooseSlot, cancelPlacement, advanceToNextTeam,
       enterLibertadores,
-      startTournamentMatch, finishTournamentMatch,
+      startTournamentMatch, finishTournamentMatch, continueToNextMatch,
       playMatch, skipReveal, finishMatch,
     },
     slotViews,
