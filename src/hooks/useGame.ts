@@ -91,11 +91,21 @@ export function useGame() {
 
   const cancelPlacement = useCallback(() => setState(prev => ({ ...prev, pending: null, pendingSlot: null })), [])
 
-  // ── "Próximo Time" — advance to next club in queue ────────────
+  // ── "Próximo Time" / "Pular" ───────────────────────────────────
+  // After placing (roundPicked=true): always allowed (mandatory advance, no cost)
+  // Before placing  (roundPicked=false): costs 1 reroll — max 2 per game
   const advanceToNextTeam = useCallback(() => {
     setState(prev => {
+      if (!prev.roundPicked && prev.rerolls <= 0) return prev   // no rerolls left
       const [nextClub, ...restQueue] = prev.clubQueue
-      return { ...prev, draftClub: nextClub ?? randClub(), clubQueue: restQueue, pending: null, pendingSlot: null, roundPicked: false }
+      return {
+        ...prev,
+        draftClub: nextClub ?? randClub(),
+        clubQueue: restQueue,
+        pending: null, pendingSlot: null,
+        roundPicked: false,
+        rerolls: prev.roundPicked ? prev.rerolls : prev.rerolls - 1,
+      }
     })
   }, [])
 

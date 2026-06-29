@@ -35,7 +35,7 @@ interface Props {
 export default function DraftScreen({
   state, slots, onSlotClick, onTapPlayer, onCancel, onAdvanceTeam,
 }: Props) {
-  const { draftClub, chosen, pending, pendingSlot, slots: rawSlots, roundPicked } = state
+  const { draftClub, rerolls, chosen, pending, pendingSlot, slots: rawSlots, roundPicked } = state
 
   // ── Slot machine state ──────────────────────────────────────
   const [spinClub, setSpinClub] = useState<string | null>(draftClub)
@@ -217,28 +217,47 @@ export default function DraftScreen({
           </div>
         )}
 
-        {/* ── Próximo Time ── sempre visível (oculto durante o spin) ── */}
+        {/* ── Próximo Time / Pular ── */}
         {!spinning && (
-          <button
-            onClick={onAdvanceTeam}
-            style={{
-              width: '100%', padding: '14px 16px',
-              background: 'rgba(46,227,122,.1)',
-              border: '1px solid rgba(46,227,122,.28)',
-              borderRadius: 12,
-              color: '#2ee37a',
-              fontFamily: "'Anton',sans-serif",
-              letterSpacing: 1.5, fontSize: 16,
-              cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-              transition: 'background .15s, border-color .15s',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(46,227,122,.18)'; e.currentTarget.style.borderColor = 'rgba(46,227,122,.5)' }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(46,227,122,.1)'; e.currentTarget.style.borderColor = 'rgba(46,227,122,.28)' }}
-          >
-            🎲 Próximo Time
-            <span style={{ fontSize: 18, opacity: .7 }}>→</span>
-          </button>
+          roundPicked ? (
+            // Após escalar: avança sempre (obrigatório, sem custo)
+            <button
+              onClick={onAdvanceTeam}
+              style={{ width: '100%', padding: '14px 16px', background: 'rgba(46,227,122,.1)', border: '1px solid rgba(46,227,122,.28)', borderRadius: 12, color: '#2ee37a', fontFamily: "'Anton',sans-serif", letterSpacing: 1.5, fontSize: 16, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, transition: 'background .15s, border-color .15s' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(46,227,122,.18)'; e.currentTarget.style.borderColor = 'rgba(46,227,122,.5)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(46,227,122,.1)'; e.currentTarget.style.borderColor = 'rgba(46,227,122,.28)' }}
+            >
+              🎲 Próximo Time <span style={{ fontSize: 18, opacity: .7 }}>→</span>
+            </button>
+          ) : (
+            // Sem escalar: pular custa 1 reroll (máx 2 por partida)
+            <button
+              onClick={onAdvanceTeam}
+              disabled={rerolls <= 0}
+              style={{
+                width: '100%', padding: '12px 16px',
+                background: rerolls > 0 ? 'rgba(255,255,255,.05)' : 'rgba(255,255,255,.02)',
+                border: `1px solid ${rerolls > 0 ? 'rgba(255,255,255,.18)' : 'rgba(255,255,255,.06)'}`,
+                borderRadius: 12,
+                color: rerolls > 0 ? '#9fb8aa' : '#3a5a3a',
+                fontFamily: "'Barlow Condensed',sans-serif",
+                fontWeight: 700, fontSize: 15, letterSpacing: 1,
+                cursor: rerolls > 0 ? 'pointer' : 'not-allowed',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                transition: 'background .15s',
+              }}
+            >
+              <span>⏭ Pular este clube</span>
+              <span style={{
+                fontSize: 11, fontWeight: 700,
+                background: rerolls > 0 ? 'rgba(245,200,75,.18)' : 'rgba(255,255,255,.06)',
+                color: rerolls > 0 ? '#f5c84b' : '#3a5a3a',
+                padding: '2px 8px', borderRadius: 99,
+              }}>
+                {rerolls}/2 restantes
+              </span>
+            </button>
+          )
         )}
       </div>
     </div>

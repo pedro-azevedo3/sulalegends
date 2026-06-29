@@ -1,5 +1,6 @@
 'use client'
 
+import { useRef, useState } from 'react'
 import { computeStandings, type LibertadoresTournament, type TPhase, type TTie, type TMatch, type KOPhase } from '@/lib/tournament'
 import type { Slot } from '@/lib/game'
 import { cleanName } from '@/lib/game'
@@ -221,11 +222,34 @@ function CampaignCard({ tournament, squad, onPlayAgain, onHome }: {
   const resultColor = isChampion ? '#2ee37a' : '#ff5e3a'
   const resultLabel = isChampion ? 'CAMPEÃO!' : phase.toUpperCase()
 
+  const cardRef = useRef<HTMLDivElement>(null)
+  const [downloading, setDownloading] = useState(false)
+
+  const handleDownload = async () => {
+    if (!cardRef.current || downloading) return
+    setDownloading(true)
+    try {
+      const html2canvas = (await import('html2canvas')).default
+      const canvas = await html2canvas(cardRef.current, {
+        backgroundColor: '#0b1a0f',
+        scale: 2,
+        useCORS: true,
+        logging: false,
+      })
+      const a = document.createElement('a')
+      a.download = `sulalegends-${isChampion ? 'campeao' : 'campanha'}.png`
+      a.href = canvas.toDataURL('image/png')
+      a.click()
+    } finally {
+      setDownloading(false)
+    }
+  }
+
   return (
     <div style={{ animation: 'campaignPop .5s cubic-bezier(.22,1,.36,1) both', display: 'flex', flexDirection: 'column', gap: 12 }}>
 
       {/* ── Main card (dark panel like 7a0) ── */}
-      <div style={{
+      <div ref={cardRef} style={{
         background: '#0b1a0f',
         border: '1px solid rgba(255,255,255,.1)',
         borderRadius: 16,
@@ -317,6 +341,28 @@ function CampaignCard({ tournament, squad, onPlayAgain, onHome }: {
           </span>
         </div>
       </div>
+
+      {/* Download */}
+      <button
+        onClick={handleDownload}
+        disabled={downloading}
+        style={{
+          width: '100%', padding: '11px 16px',
+          background: 'rgba(255,255,255,.05)',
+          border: '1px solid rgba(255,255,255,.14)',
+          borderRadius: 12,
+          color: downloading ? '#4a7a60' : '#9fd9b6',
+          fontFamily: "'Barlow Condensed',sans-serif",
+          fontWeight: 700, fontSize: 14, letterSpacing: 1,
+          cursor: downloading ? 'default' : 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+          transition: 'background .15s, color .15s',
+        }}
+        onMouseEnter={e => { if (!downloading) e.currentTarget.style.background = 'rgba(255,255,255,.1)' }}
+        onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,.05)' }}
+      >
+        {downloading ? '⏳ Gerando imagem…' : '📲 Baixar card para redes sociais'}
+      </button>
 
       {/* Action buttons — fora do card */}
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
