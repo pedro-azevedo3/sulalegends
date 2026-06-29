@@ -41,9 +41,9 @@ export const DB: Record<string, PlayerTuple[]> = {
     ['Alex','MEI',86],['Oséas','ATA',80],['Paulo Nunes','PE',81],['Asprilla','ATA',83],
   ],
   'Palmeiras 2021': [
-    ['Weverton','GOL',84],['Marcos Rocha','LD',80],['Gustavo Gómez','ZAG',84],['Luan','ZAG',80],
-    ['Piquerez','LE',82],['Danilo','VOL',82],['Zé Rafael','MC',81],['Raphael Veiga','MEI',84],
-    ['Gabriel Menino','MD',79],['Dudu','PE',83],['Rony','ATA',82],['Breno Lopes','ATA',78],
+    ['Weverton','GOL',88],['Marcos Rocha','LD',80],['Gustavo Gómez','ZAG',87],['Luan','ZAG',80],
+    ['Piquerez','LE',82],['Danilo','VOL',82],['Zé Rafael','MC',81],['Raphael Veiga','MEI',86],
+    ['Gabriel Menino','MD',79],['Dudu','PE',86],['Rony','ATA',82],['Breno Lopes','ATA',78],
     ['Felipe Melo','VOL',80],
   ],
   'Grêmio 1983': [
@@ -52,19 +52,19 @@ export const DB: Record<string, PlayerTuple[]> = {
     ['Renato Gaúcho','MEI',85],['Tita','PE',83],['Osvaldo','ATA',83],['Paulo Nunes','ATA',80],
   ],
   'Grêmio 2017': [
-    ['Marcelo Grohe','GOL',83],['Léo Moura','LD',80],['Pedro Geromel','ZAG',83],['Kannemann','ZAG',82],
+    ['Marcelo Grohe','GOL',83],['Léo Moura','LD',80],['Pedro Geromel','ZAG',88],['Kannemann','ZAG',88],
     ['Bruno Cortez','LE',79],['Maicon','VOL',82],['Arthur','MC',83],['Ramiro','MC',80],
-    ['Luan Grêmio','MEI',84],['Everton Ceará','PE',84],['Lucas Barrios','ATA',80],['Fernandinho G','PD',78],
+    ['Luan Grêmio','MEI',85],['Everton Ceará','PE',84],['Lucas Barrios','ATA',80],['Fernandinho G','PD',78],
   ],
   'Corinthians 2012': [
-    ['Cássio','GOL',84],['Alessandro','LD',80],['Chicão','ZAG',81],['Leandro Castán','ZAG',81],
-    ['Fábio Santos','LE',80],['Ralf','VOL',80],['Paulinho','VOL',84],['Danilo','MEI',82],
-    ['Jorge Henrique','MD',79],['Emerson Sheik','ATA',82],['Paolo Guerrero','ATA',84],['Romarinho','ATA',78],
+    ['Cássio','GOL',90],['Alessandro','LD',80],['Chicão','ZAG',84],['Leandro Castán','ZAG',81],
+    ['Fábio Santos','LE',80],['Ralf','VOL',80],['Paulinho','VOL',84],['Danilo','MEI',85],
+    ['Jorge Henrique','MD',79],['Emerson Sheik','ATA',86],['Romarinho','ATA',81],
   ],
   'Atlético-MG 2013': [
     ['Victor','GOL',84],['Marcos Rocha','LD',80],['Réver','ZAG',82],['Leonardo Silva','ZAG',81],
     ['Júnior César','LE',78],['Pierre','VOL',79],['Leandro Donizete','VOL',79],
-    ['Ronaldinho','MEI',88],['Bernard','PD',82],['Diego Tardelli','ATA',83],['Jô','ATA',81],
+    ['Ronaldinho','MEI',89],['Bernard','PD',82],['Diego Tardelli','ATA',84],['Jô','ATA',84],
   ],
   'Atlético-MG 2021': [
     ['Everson','GOL',83],['Mariano','LD',80],['Júnior Alonso','ZAG',84],['Nathan Silva','ZAG',81],
@@ -74,7 +74,7 @@ export const DB: Record<string, PlayerTuple[]> = {
   'Internacional 2006': [
     ['Clemer','GOL',80],['Ceará','LD',79],['Índio','ZAG',81],['Fabiano Eller','ZAG',79],
     ['Wellington','LE',77],['Edinho','VOL',80],['Tinga','MC',81],['Iarley','MEI',81],
-    ['Alex','MD',78],['Fernandão','ATA',83],['Rafael Sóbis','ATA',81],['Alexandre Pato','ATA',80],
+    ['Alex','MD',78],['Fernandão','ATA',87],['Rafael Sóbis','ATA',84],['Alexandre Pato','ATA',84],
   ],
   'Cruzeiro 1976': [
     ['Raul','GOL',81],['Nelinho','LD',83],['Joél','ZAG',80],['Rodrigues Neto','ZAG',79],
@@ -295,7 +295,7 @@ export const DB: Record<string, PlayerTuple[]> = {
     ['Donizete V','MC',81],['Felipe V','MD',81],['Luizão','ATA',82],
   ],
   'Athletico Paranaense 2022': [
-    ['Bento','GOL',86],['Khellven','LD',79],['Pedro Henrique','ZAG',82],['Thiago Heleno','ZAG',81],
+    ['Bento','GOL',83],['Khellven','LD',79],['Pedro Henrique','ZAG',82],['Thiago Heleno','ZAG',81],
     ['Abner','LE',80],['Fernandinho AP','VOL',83],['Hugo Moura','MC',79],
     ['David Terans','MEI',82],['Vitinho AP','PE',80],['Pablo','ATA',82],
     ['Canobbio','MD',80],['Rômulo','ZAG',79],
@@ -372,7 +372,7 @@ export const JERSEY: Record<string, Record<string, number>> = {
   },
   'Corinthians 2012': {
     'Cássio':12,'Alessandro':2,'Fábio Santos':6,'Chicão':4,'Leandro Castán':5,
-    'Ralf':8,'Jorge Henrique':7,'Paulinho':5,'Danilo':17,'Emerson Sheik':10,'Paolo Guerrero':9,'Romarinho':21,
+    'Ralf':8,'Jorge Henrique':7,'Paulinho':5,'Danilo':17,'Emerson Sheik':10,'Romarinho':21,
   },
   'Atlético-MG 2013': {
     'Victor':1,'Marcos Rocha':2,'Réver':4,'Leonardo Silva':3,'Júnior César':6,
