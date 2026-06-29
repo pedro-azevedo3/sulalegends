@@ -86,6 +86,7 @@ export default function GamePage() {
           onSkip={actions.skipReveal}
           onFinish={handleFinishMatch}
           onNextMatch={state.tournamentCtx ? actions.continueToNextMatch : undefined}
+          onSetSpeed={actions.setSimSpeed}
         />
       )}
       {screen === 'result'       && <ResultScreen state={state} onPlayAgain={actions.goToConfig} onHome={actions.home} />}

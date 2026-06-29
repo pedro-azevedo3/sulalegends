@@ -44,6 +44,7 @@ export interface TournamentMatchCtx {
   matchId: string
   opponentClub: string
   isUserHome: boolean
+  phaseLabel: string   // e.g. "Fase de Grupos · Jogo de Ida 1/3"
 }
 
 export interface GameState {
@@ -67,7 +68,9 @@ export interface GameState {
   libertadores: import('@/lib/tournament').LibertadoresTournament | null
   tournamentCtx: TournamentMatchCtx | null
   // Draft round state
-  roundPicked: boolean   // true after placing 1 player → hides roster until Próximo Time
+  roundPicked: boolean
+  // Match simulation speed (multiplier: 0.5, 1, 2, 4)
+  simSpeed: number
 }
 
 // ── Formations [pos, x%, y%] ──────────────────────────────────
@@ -169,6 +172,7 @@ export function fresh(): GameState {
     sim: null, revealIdx: 0, scoreP: 0, scoreC: 0, simDone: false,
     libertadores: null, tournamentCtx: null,
     roundPicked: false,
+    simSpeed: 1,
   }
 }
 

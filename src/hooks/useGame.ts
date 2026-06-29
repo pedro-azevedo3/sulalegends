@@ -13,13 +13,59 @@ import {
   type LibertadoresTournament,
 } from '@/lib/tournament'
 
+// ── Phase label helper ────────────────────────────────────────
+function getPhaseLabel(match: import('@/lib/tournament').TMatch): string {
+  if (match.phase === 'groups') {
+    const round = match.leg === 1 ? match.matchday : match.matchday - 3
+    const leg = match.leg === 1 ? 'Ida' : 'Volta'
+    return `Fase de Grupos · Jogo de ${leg} ${round}/3`
+  }
+  if (match.phase === 'final') return 'Final'
+  const names: Record<string, string> = {
+    r16: 'Oitavas de Final', qf: 'Quartas de Final', sf: 'Semifinais',
+  }
+  const leg = match.leg === 1 ? 'Jogo de Ida' : 'Jogo de Volta'
+  return `${names[match.phase] ?? match.phase} · ${leg}`
+}
+
 export function useGame() {
   const [state, setState] = useState<GameState>(fresh)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const speedRef = useRef(1)
 
   const clearTimer = useCallback(() => {
     if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null }
   }, [])
+
+  // Shared sim tick — used by all timer starts
+  const simTick = useCallback(() => {
+    setState(st => {
+      if (!st.sim || st.simDone) return st
+      const i = st.revealIdx
+      if (i >= st.sim.events.length) { clearTimer(); return { ...st, simDone: true } }
+      const e = st.sim.events[i]
+      const done = i + 1 >= st.sim.events.length
+      if (done) clearTimer()
+      return {
+        ...st, revealIdx: i + 1,
+        scoreP: st.scoreP + (e.team === 'p' ? 1 : 0),
+        scoreC: st.scoreC + (e.team === 'c' ? 1 : 0),
+        simDone: done,
+      }
+    })
+  }, [clearTimer])
+
+  const startSimTimer = useCallback((speed?: number) => {
+    if (speed !== undefined) speedRef.current = speed
+    if (timerRef.current) clearInterval(timerRef.current)
+    timerRef.current = setInterval(simTick, Math.round(1150 / speedRef.current))
+  }, [simTick])
+
+  const setSimSpeed = useCallback((speed: number) => {
+    speedRef.current = speed
+    setState(prev => ({ ...prev, simSpeed: speed }))
+    if (timerRef.current !== null) startSimTimer(speed)
+  }, [startSimTimer])
 
   // ── Navigation ────────────────────────────────────────────────
   const home      = useCallback(() => { clearTimer(); setState(fresh()) }, [clearTimer])
@@ -120,51 +166,23 @@ export function useGame() {
 
   // ── Start a tournament match (user clicks JOGAR) ──────────────
   const startTournamentMatch = useCallback((matchId: string) => {
+    clearTimer()
     setState(prev => {
       if (!prev.libertadores) return prev
       const match = prev.libertadores.matches[matchId]
       if (!match) return prev
-
       const opponentClub = match.home === 'SULALEGENDS' ? match.away : match.home
       const isUserHome   = match.home === 'SULALEGENDS'
-
       const sim = simulate(prev, { cpuClub: opponentClub })
-
-      clearTimer()
-      const initSt: GameState = {
-        ...prev,
-        screen: 'match',
-        sim,
-        revealIdx: 0,
-        scoreP: 0,
-        scoreC: 0,
+      if (sim.events.length > 0) setTimeout(() => startSimTimer(), 0)
+      return {
+        ...prev, screen: 'match', sim,
+        revealIdx: 0, scoreP: 0, scoreC: 0,
         simDone: sim.events.length === 0,
-        tournamentCtx: { matchId, opponentClub, isUserHome },
+        tournamentCtx: { matchId, opponentClub, isUserHome, phaseLabel: getPhaseLabel(match) },
       }
-
-      if (sim.events.length > 0) {
-        setTimeout(() => {
-          timerRef.current = setInterval(() => {
-            setState(st => {
-              if (!st.sim) return st
-              const i = st.revealIdx
-              if (i >= st.sim.events.length) { clearTimer(); return { ...st, simDone: true } }
-              const e = st.sim.events[i]
-              const done = i + 1 >= st.sim.events.length
-              if (done) clearTimer()
-              return {
-                ...st, revealIdx: i + 1,
-                scoreP: st.scoreP + (e.team === 'p' ? 1 : 0),
-                scoreC: st.scoreC + (e.team === 'c' ? 1 : 0),
-                simDone: done,
-              }
-            })
-          }, 1150)
-        }, 0)
-      }
-      return initSt
     })
-  }, [clearTimer])
+  }, [clearTimer, startSimTimer])
 
   // ── Finish tournament match → apply result → back to bracket ──
   const finishTournamentMatch = useCallback(() => {
@@ -201,64 +219,27 @@ export function useGame() {
       const nextIsHome = nextMatch.home === 'SULALEGENDS'
       const sim = simulate(prev, { cpuClub: opponent })
 
-      // Start timer after React commits
-      if (sim.events.length > 0) {
-        setTimeout(() => {
-          timerRef.current = setInterval(() => {
-            setState(st => {
-              if (!st.sim) return st
-              const i = st.revealIdx
-              if (i >= st.sim.events.length) { clearTimer(); return { ...st, simDone: true } }
-              const e = st.sim.events[i]
-              const done = i + 1 >= st.sim.events.length
-              if (done) clearTimer()
-              return {
-                ...st, revealIdx: i + 1,
-                scoreP: st.scoreP + (e.team === 'p' ? 1 : 0),
-                scoreC: st.scoreC + (e.team === 'c' ? 1 : 0),
-                simDone: done,
-              }
-            })
-          }, 1150)
-        }, 0)
-      }
+      if (sim.events.length > 0) setTimeout(() => startSimTimer(), 0)
 
       return {
         ...prev,
-        libertadores: updated,
-        screen: 'match',
-        sim,
+        libertadores: updated, screen: 'match', sim,
         revealIdx: 0, scoreP: 0, scoreC: 0,
         simDone: sim.events.length === 0,
-        tournamentCtx: { matchId: nextId, opponentClub: opponent, isUserHome: nextIsHome },
+        tournamentCtx: { matchId: nextId, opponentClub: opponent, isUserHome: nextIsHome, phaseLabel: getPhaseLabel(nextMatch) },
       }
     })
-  }, [clearTimer])
+  }, [clearTimer, startSimTimer])
 
   // ── Standalone match flow (non-tournament) ─────────────────────
   const playMatch = useCallback(() => {
+    clearTimer()
     setState(prev => {
       const sim = simulate(prev)
-      clearTimer()
-      const initSt: GameState = { ...prev, screen: 'match', sim, revealIdx: 0, scoreP: 0, scoreC: 0, simDone: sim.events.length === 0, tournamentCtx: null }
-      if (sim.events.length > 0) {
-        setTimeout(() => {
-          timerRef.current = setInterval(() => {
-            setState(st => {
-              if (!st.sim) return st
-              const i = st.revealIdx
-              if (i >= st.sim.events.length) { clearTimer(); return { ...st, simDone: true } }
-              const e = st.sim.events[i]
-              const done = i + 1 >= st.sim.events.length
-              if (done) clearTimer()
-              return { ...st, revealIdx: i + 1, scoreP: st.scoreP + (e.team === 'p' ? 1 : 0), scoreC: st.scoreC + (e.team === 'c' ? 1 : 0), simDone: done }
-            })
-          }, 1150)
-        }, 0)
-      }
-      return initSt
+      if (sim.events.length > 0) setTimeout(() => startSimTimer(), 0)
+      return { ...prev, screen: 'match', sim, revealIdx: 0, scoreP: 0, scoreC: 0, simDone: sim.events.length === 0, tournamentCtx: null }
     })
-  }, [clearTimer])
+  }, [clearTimer, startSimTimer])
 
   const skipReveal    = useCallback(() => { clearTimer(); setState(prev => !prev.sim ? prev : ({ ...prev, revealIdx: prev.sim.events.length, scoreP: prev.sim.goalsP, scoreC: prev.sim.goalsC, simDone: true })) }, [clearTimer])
   const finishMatch   = useCallback(() => setState(prev => ({ ...prev, screen: 'result' })), [])
@@ -290,7 +271,7 @@ export function useGame() {
       reroll, tapPlayer, chooseSlot, cancelPlacement, advanceToNextTeam,
       enterLibertadores,
       startTournamentMatch, finishTournamentMatch, continueToNextMatch,
-      playMatch, skipReveal, finishMatch,
+      playMatch, skipReveal, finishMatch, setSimSpeed,
     },
     slotViews,
   }

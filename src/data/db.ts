@@ -184,7 +184,23 @@ export const DB: Record<string, PlayerTuple[]> = {
     ['Sanabria','MEI',78],['Cardozo','ATA',82],['Bonet','ATA',79],['Suárez','PE',77],
   ],
 
-  // ── 20 TIMES ADICIONAIS ───────────────────────────────────────
+  // ── TIMES ADICIONAIS ─────────────────────────────────────────
+
+  'Botafogo 2024': [
+    ['John','GOL',86],['Vitinho','LD',80],['Alexander Barboza','ZAG',83],['Bastos','ZAG',82],
+    ['Cuiabano','LE',81],['Gregore','VOL',83],['Marlon Freitas','VOL',85],['Thiago Almada','MEI',86],
+    ['Luiz Henrique','PE',85],['Savarino','PD',83],['Igor Jesus','ATA',85],['Eduardo','MD',80],
+  ],
+  'Cruzeiro 2003': [
+    ['Geovani','GOL',80],['Rogério Flávio','LD',78],['Carlos Gamarra','ZAG',84],['Antônio Carlos','ZAG',80],
+    ['Éder Lima','LE',78],['Wellington','VOL',79],['Ricardinho','MC',83],['Alex','MEI',88],
+    ['Edu','PD',82],['Deivid','ATA',83],['Ramon','ATA',80],['Luizão','ATA',82],
+  ],
+  'Cruzeiro 2014': [
+    ['Fábio','GOL',86],['Mayke','LD',79],['Dedé','ZAG',86],['Léo','ZAG',82],
+    ['Egídio','LE',81],['Lucas Silva','VOL',83],['Nilton','VOL',80],['Everton Ribeiro','MEI',85],
+    ['Ricardo Goulart','MEI',84],['Marcelo Moreno','ATA',83],['Willian','PE',82],['Raphael Veiga C','MC',79],
+  ],
 
   // ARGENTINA
   'Racing Club 1967': [
@@ -463,6 +479,20 @@ export const JERSEY: Record<string, Record<string, number>> = {
   'Olimpia 2002': {
     'Villar':1,'Torales':2,'González':3,'Ferreira':4,'Sarabia':5,
     'Acuña':6,'Palencia':7,'Báez':8,'Cardozo':9,'Sanabria':10,'Bonet':11,'Suárez':17,
+  },
+  'Botafogo 2024': {
+    'John':1,'Vitinho':2,'Alexander Barboza':4,'Bastos':5,'Cuiabano':6,
+    'Gregore':8,'Marlon Freitas':5,'Thiago Almada':10,'Eduardo':22,'Luiz Henrique':7,
+    'Savarino':11,'Igor Jesus':9,
+  },
+  'Cruzeiro 2003': {
+    'Geovani':1,'Rogério Flávio':2,'Antônio Carlos':3,'Carlos Gamarra':4,'Éder Lima':6,
+    'Wellington':5,'Ricardinho':8,'Edu':7,'Alex':10,'Deivid':9,'Ramon':11,'Luizão':19,
+  },
+  'Cruzeiro 2014': {
+    'Fábio':1,'Mayke':2,'Léo':3,'Dedé':4,'Egídio':6,
+    'Nilton':5,'Lucas Silva':8,'Willian':7,'Everton Ribeiro':10,'Ricardo Goulart':9,
+    'Marcelo Moreno':11,'Raphael Veiga C':17,
   },
 }
 
