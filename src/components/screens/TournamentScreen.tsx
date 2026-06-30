@@ -226,16 +226,125 @@ function CampaignCard({ tournament, squad, onPlayAgain, onHome }: {
   const [downloading, setDownloading] = useState(false)
 
   const handleDownload = async () => {
-    if (!cardRef.current || downloading) return
+    if (downloading) return
     setDownloading(true)
     try {
-      const html2canvas = (await import('html2canvas')).default
-      const canvas = await html2canvas(cardRef.current, {
-        backgroundColor: '#0b1a0f',
-        scale: 2,
-        useCORS: true,
-        logging: false,
+      // Wait for web fonts before drawing
+      await document.fonts.ready
+
+      const SCALE  = 2
+      const W      = 440
+      const PAD    = 16
+      const HEADER_H = 44
+      const RESULT_H = 88
+      const STATS_H  = 76
+      const ROW_H    = 36
+      const FOOTER_H = 36
+      const totalH = HEADER_H + RESULT_H + STATS_H + players.length * ROW_H + FOOTER_H
+
+      const canvas = document.createElement('canvas')
+      canvas.width  = W * SCALE
+      canvas.height = totalH * SCALE
+      const ctx = canvas.getContext('2d')!
+      ctx.scale(SCALE, SCALE)
+
+      const line = (y: number, a = 0.07) => {
+        ctx.fillStyle = `rgba(255,255,255,${a})`
+        ctx.fillRect(0, y, W, 1)
+      }
+      const vline = (x: number, y: number, h: number) => {
+        ctx.fillStyle = 'rgba(255,255,255,0.07)'
+        ctx.fillRect(x, y, 1, h)
+      }
+
+      // ── Background ──────────────────────────────────────────────
+      ctx.fillStyle = '#0b1a0f'
+      ctx.fillRect(0, 0, W, totalH)
+
+      // ── Header ──────────────────────────────────────────────────
+      ctx.fillStyle = 'rgba(255,255,255,0.03)'
+      ctx.fillRect(0, 0, W, HEADER_H)
+      ctx.fillStyle = '#4a7a60'
+      ctx.font = `700 10px "Barlow Condensed", "Arial Narrow", sans-serif`
+      ctx.letterSpacing = '2px'
+      ctx.textBaseline = 'middle'
+      ctx.textAlign = 'left'
+      ctx.fillText('COPA SULALEGENDS', PAD, HEADER_H / 2)
+      ctx.fillStyle = '#3a5a3a'
+      ctx.font = `500 10px "Barlow Condensed", "Arial Narrow", sans-serif`
+      ctx.textAlign = 'right'
+      ctx.fillText('SULALEGENDS', W - PAD, HEADER_H / 2)
+      ctx.letterSpacing = '0px'
+      line(HEADER_H)
+
+      // ── Result ──────────────────────────────────────────────────
+      ctx.textAlign = 'center'
+      ctx.fillStyle = resultColor
+      ctx.font = `400 52px "Anton", "Arial Black", Impact, sans-serif`
+      ctx.fillText(resultLabel, W / 2, HEADER_H + RESULT_H * 0.58)
+      line(HEADER_H + RESULT_H)
+
+      // ── Stats grid ──────────────────────────────────────────────
+      const colW = W / 4
+      const statsBase = HEADER_H + RESULT_H
+      const statsItems = [
+        { label: 'GOLS PRÓ', val: stats.gf, color: '#2ee37a' },
+        { label: 'SOFRIDOS', val: stats.ga, color: '#ff8f6a' },
+        { label: 'OVERALL',  val: avgOvr,   color: '#f5c84b' },
+        { label: 'VITÓRIAS', val: stats.w,  color: '#fff'    },
+      ]
+      statsItems.forEach(({ label, val, color }, i) => {
+        const cx = colW * i + colW / 2
+        ctx.fillStyle = color
+        ctx.font = `400 28px "Anton", "Arial Black", sans-serif`
+        ctx.fillText(String(val), cx, statsBase + STATS_H * 0.5)
+        ctx.fillStyle = '#4a7a60'
+        ctx.font = `700 9px "Barlow Condensed", "Arial Narrow", sans-serif`
+        ctx.letterSpacing = '1px'
+        ctx.fillText(label, cx, statsBase + STATS_H * 0.5 + 18)
+        ctx.letterSpacing = '0px'
+        if (i < 3) vline(colW * (i + 1), statsBase, STATS_H)
       })
+      line(statsBase + STATS_H)
+
+      // ── Player rows ─────────────────────────────────────────────
+      const rowsBase = statsBase + STATS_H
+      players.forEach((p, i) => {
+        const meta  = clubMeta(p.club || '')
+        const num   = p.club ? (JERSEY[p.club]?.[p.n] ?? i + 1) : i + 1
+        const rowY  = rowsBase + i * ROW_H
+        const midY  = rowY + ROW_H / 2
+
+        // Jersey number
+        ctx.fillStyle = '#3a6650'
+        ctx.font = `700 12px "Barlow Condensed", "Arial Narrow", sans-serif`
+        ctx.textAlign = 'right'
+        ctx.fillText(String(num), PAD + 20, midY)
+
+        // Player name
+        ctx.fillStyle = '#eafff0'
+        ctx.font = `700 14px "Barlow", Arial, sans-serif`
+        ctx.textAlign = 'left'
+        const nameMaxW = W - PAD * 2 - 36 - 90
+        ctx.fillText(cleanName(p.n), PAD + 30, midY, nameMaxW)
+
+        // Country + year
+        ctx.fillStyle = '#4a7a60'
+        ctx.font = `600 11px "Barlow Condensed", "Arial Narrow", sans-serif`
+        ctx.textAlign = 'right'
+        ctx.fillText(`${meta.code} ${meta.year}`, W - PAD, midY)
+
+        if (i < players.length - 1) line(rowY + ROW_H, 0.05)
+      })
+
+      // ── Footer ──────────────────────────────────────────────────
+      const footerY = rowsBase + players.length * ROW_H
+      line(footerY, 0.06)
+      ctx.fillStyle = '#3a5a3a'
+      ctx.font = `400 11px "Barlow Condensed", "Arial Narrow", sans-serif`
+      ctx.textAlign = 'center'
+      ctx.fillText('sulalegends.com.br · monte o seu', W / 2, footerY + FOOTER_H / 2)
+
       const a = document.createElement('a')
       a.download = `sulalegends-${isChampion ? 'campeao' : 'campanha'}.png`
       a.href = canvas.toDataURL('image/png')
