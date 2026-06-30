@@ -6,7 +6,7 @@ import type { PlayerTuple, CpuTeam } from '@/data/db'
 export type Formation = '4-4-2' | '4-3-3' | '4-2-3-1' | '4-2-4' | '5-3-2' | '4-5-1' | '3-4-3'
 export type Style = 'Defensivo' | 'Equilibrado' | 'Ofensivo'
 export type Difficulty = 'Normal' | 'Difícil'
-export type Screen = 'home' | 'config' | 'draft' | 'squad' | 'match' | 'result' | 'libertadores'
+export type Screen = 'home' | 'config' | 'draft' | 'squad' | 'match' | 'result' | 'libertadores' | 'penalties'
 
 export interface SlotDef {
   pos: string
@@ -47,6 +47,19 @@ export interface TournamentMatchCtx {
   phaseLabel: string   // e.g. "Fase de Grupos · Jogo de Ida 1/3"
 }
 
+export interface PenaltyShootoutState {
+  tieId: string
+  clubA: string
+  clubB: string
+  isUserA: boolean   // is SULALEGENDS clubA in this tie?
+  kicks: import('@/lib/tournament').PenaltyKick[]
+  winnerSide: 'A' | 'B'
+  finalScoreA: number
+  finalScoreB: number
+  revealedCount: number   // how many kicks have been revealed so far
+  phaseLabel: string
+}
+
 export interface GameState {
   screen: Screen
   formation: Formation
@@ -67,6 +80,7 @@ export interface GameState {
   // Libertadores
   libertadores: import('@/lib/tournament').LibertadoresTournament | null
   tournamentCtx: TournamentMatchCtx | null
+  penaltyShootout: PenaltyShootoutState | null
   // Draft round state
   roundPicked: boolean
   // Match simulation speed (multiplier: 0.5, 1, 2, 4)
@@ -170,7 +184,7 @@ export function fresh(): GameState {
     slots: null, draftClub: null, clubQueue: [], rerolls: 2,
     chosen: [], pending: null, pendingSlot: null,
     sim: null, currentMinute: 0, scoreP: 0, scoreC: 0, simDone: false,
-    libertadores: null, tournamentCtx: null,
+    libertadores: null, tournamentCtx: null, penaltyShootout: null,
     roundPicked: false,
     simSpeed: 1,
   }

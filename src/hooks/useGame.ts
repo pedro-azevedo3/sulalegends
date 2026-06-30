@@ -5,16 +5,18 @@ import { DB } from '@/data/db'
 import type { PlayerTuple } from '@/data/db'
 import {
   type GameState, type Formation, type Style, type Difficulty, type Slot,
-  fresh, buildSlots, randClub, eligibleOpenSlots, openPosFor, fit, simulate,
+  type PenaltyShootoutState,
+  fresh, buildSlots, randClub, eligibleOpenSlots, openPosFor, fit, simulate, cleanName,
   POS_LABEL,
 } from '@/lib/game'
 import {
-  createLibertadores, applyMatchResult, userTeamStrength,
-  type LibertadoresTournament,
+  createLibertadores, applyMatchResult, resolvePenaltyShootoutForTie,
+  simulatePenaltyShootout, userTeamStrength, userSquadNames,
+  type LibertadoresTournament, type TMatch, type KOPhase,
 } from '@/lib/tournament'
 
-// ── Phase label helper ────────────────────────────────────────
-function getPhaseLabel(match: import('@/lib/tournament').TMatch): string {
+// ── Phase label helpers ──────────────────────────────────────────
+function getPhaseLabel(match: TMatch): string {
   if (match.phase === 'groups') {
     const round = match.leg === 1 ? match.matchday : match.matchday - 3
     const leg = match.leg === 1 ? 'Ida' : 'Volta'
@@ -26,6 +28,34 @@ function getPhaseLabel(match: import('@/lib/tournament').TMatch): string {
   }
   const leg = match.leg === 1 ? 'Jogo de Ida' : 'Jogo de Volta'
   return `${names[match.phase] ?? match.phase} · ${leg}`
+}
+
+const KO_PHASE_NAMES: Record<KOPhase, string> = {
+  r16: 'Oitavas de Final', qf: 'Quartas de Final', sf: 'Semifinais', final: 'Final',
+}
+
+/** Builds the full shootout (all kicks pre-simulated) for the user's tie,
+ *  using the user's actual squad names on their side. */
+function buildPenaltyShootoutState(
+  tournament: LibertadoresTournament,
+  tieId: string,
+  userSlots: GameState['slots']
+): PenaltyShootoutState {
+  const tie = tournament.ties.find(t => t.id === tieId)!
+  const isUserA = tie.clubA === 'SULALEGENDS'
+  const userNames = userSquadNames(userSlots).map(cleanName)
+  const result = simulatePenaltyShootout(
+    tie.clubA, tie.clubB,
+    isUserA ? userNames : undefined,
+    !isUserA ? userNames : undefined,
+  )
+  return {
+    tieId: tie.id, clubA: tie.clubA, clubB: tie.clubB, isUserA,
+    kicks: result.kicks, winnerSide: result.winner,
+    finalScoreA: result.scoreA, finalScoreB: result.scoreB,
+    revealedCount: 0,
+    phaseLabel: `Pênaltis · ${KO_PHASE_NAMES[tie.phase]}`,
+  }
 }
 
 export function useGame() {
@@ -64,6 +94,23 @@ export function useGame() {
     setState(prev => ({ ...prev, simSpeed: speed }))
     if (timerRef.current !== null) startSimTimer(speed)
   }, [startSimTimer])
+
+  // Penalty shootout reveal — one kick at a time, alternating, fixed pace
+  const penaltyTick = useCallback(() => {
+    setState(st => {
+      if (!st.penaltyShootout) { clearTimer(); return st }
+      const total = st.penaltyShootout.kicks.length
+      const next = st.penaltyShootout.revealedCount + 1
+      const done = next >= total
+      if (done) clearTimer()
+      return { ...st, penaltyShootout: { ...st.penaltyShootout, revealedCount: next } }
+    })
+  }, [clearTimer])
+
+  const startPenaltyTimer = useCallback(() => {
+    if (timerRef.current) clearInterval(timerRef.current)
+    timerRef.current = setInterval(penaltyTick, 750)
+  }, [penaltyTick])
 
   // ── Navigation ────────────────────────────────────────────────
   const home      = useCallback(() => { clearTimer(); setState(fresh()) }, [clearTimer])
@@ -181,19 +228,27 @@ export function useGame() {
     })
   }, [clearTimer, startSimTimer])
 
-  // ── Finish tournament match → apply result → back to bracket ──
+  // ── Finish tournament match → apply result → bracket OR penalties ──
   const finishTournamentMatch = useCallback(() => {
+    clearTimer()
     setState(prev => {
       if (!prev.tournamentCtx || !prev.libertadores) return { ...prev, screen: 'result' }
       const { matchId, isUserHome } = prev.tournamentCtx
       const homeGoals = isUserHome ? prev.scoreP : prev.scoreC
       const awayGoals = isUserHome ? prev.scoreC : prev.scoreP
       const updated = applyMatchResult(prev.libertadores, matchId, homeGoals, awayGoals, userTeamStrength(prev.slots))
+
+      if (updated.pendingPenaltyTieId) {
+        const shootout = buildPenaltyShootoutState(updated, updated.pendingPenaltyTieId, prev.slots)
+        setTimeout(() => startPenaltyTimer(), 0)
+        return { ...prev, libertadores: updated, screen: 'penalties', tournamentCtx: null, penaltyShootout: shootout }
+      }
+
       return { ...prev, screen: 'libertadores', libertadores: updated, tournamentCtx: null }
     })
-  }, [])
+  }, [clearTimer, startPenaltyTimer])
 
-  // ── "Próximo Jogo" — apply result then immediately start next match ──
+  // ── "Próximo Jogo" — apply result then immediately start next match (or penalties) ──
   const continueToNextMatch = useCallback(() => {
     clearTimer()
     setState(prev => {
@@ -203,6 +258,12 @@ export function useGame() {
       const homeGoals = isUserHome ? prev.scoreP : prev.scoreC
       const awayGoals = isUserHome ? prev.scoreC : prev.scoreP
       const updated = applyMatchResult(prev.libertadores, matchId, homeGoals, awayGoals, userTeamStrength(prev.slots))
+
+      if (updated.pendingPenaltyTieId) {
+        const shootout = buildPenaltyShootoutState(updated, updated.pendingPenaltyTieId, prev.slots)
+        setTimeout(() => startPenaltyTimer(), 0)
+        return { ...prev, libertadores: updated, screen: 'penalties', tournamentCtx: null, penaltyShootout: shootout }
+      }
 
       // No next user match → go to tournament screen
       const nextId = updated.nextUserMatchId
@@ -224,7 +285,63 @@ export function useGame() {
         tournamentCtx: { matchId: nextId, opponentClub: opponent, isUserHome: nextIsHome, phaseLabel: getPhaseLabel(nextMatch) },
       }
     })
-  }, [clearTimer, startSimTimer])
+  }, [clearTimer, startSimTimer, startPenaltyTimer])
+
+  // ── Penalties: skip reveal → show all kicks instantly ──────────
+  const skipPenaltiesReveal = useCallback(() => {
+    clearTimer()
+    setState(prev => !prev.penaltyShootout ? prev : ({
+      ...prev,
+      penaltyShootout: { ...prev.penaltyShootout, revealedCount: prev.penaltyShootout.kicks.length },
+    }))
+  }, [clearTimer])
+
+  // ── Penalties: "Ver Tabela" — apply tie result → back to bracket ──
+  const finishPenalties = useCallback(() => {
+    clearTimer()
+    setState(prev => {
+      if (!prev.penaltyShootout || !prev.libertadores) return { ...prev, screen: 'libertadores', penaltyShootout: null }
+      const { tieId, winnerSide, finalScoreA, finalScoreB } = prev.penaltyShootout
+      const updated = resolvePenaltyShootoutForTie(prev.libertadores, tieId, winnerSide, finalScoreA, finalScoreB, userTeamStrength(prev.slots))
+      return { ...prev, screen: 'libertadores', libertadores: updated, penaltyShootout: null }
+    })
+  }, [clearTimer])
+
+  // ── Penalties: "Próximo Jogo" — apply tie result then continue ──
+  const continuePenaltiesNextMatch = useCallback(() => {
+    clearTimer()
+    setState(prev => {
+      if (!prev.penaltyShootout || !prev.libertadores) return { ...prev, screen: 'libertadores', penaltyShootout: null }
+      const { tieId, winnerSide, finalScoreA, finalScoreB } = prev.penaltyShootout
+      const updated = resolvePenaltyShootoutForTie(prev.libertadores, tieId, winnerSide, finalScoreA, finalScoreB, userTeamStrength(prev.slots))
+
+      // Rare back-to-back shootout (e.g. user's next tie is also instantly level — won't
+      // actually happen since legs must be played first, but handled defensively)
+      if (updated.pendingPenaltyTieId) {
+        const shootout = buildPenaltyShootoutState(updated, updated.pendingPenaltyTieId, prev.slots)
+        setTimeout(() => startPenaltyTimer(), 0)
+        return { ...prev, libertadores: updated, screen: 'penalties', penaltyShootout: shootout }
+      }
+
+      const nextId = updated.nextUserMatchId
+      if (!nextId || !updated.matches[nextId]) {
+        return { ...prev, libertadores: updated, screen: 'libertadores', penaltyShootout: null }
+      }
+
+      const nextMatch = updated.matches[nextId]
+      const opponent   = nextMatch.home === 'SULALEGENDS' ? nextMatch.away : nextMatch.home
+      const nextIsHome = nextMatch.home === 'SULALEGENDS'
+      const sim = simulate(prev, { cpuClub: opponent })
+      setTimeout(() => startSimTimer(), 0)
+
+      return {
+        ...prev,
+        libertadores: updated, screen: 'match', sim, penaltyShootout: null,
+        currentMinute: 0, scoreP: 0, scoreC: 0, simDone: false,
+        tournamentCtx: { matchId: nextId, opponentClub: opponent, isUserHome: nextIsHome, phaseLabel: getPhaseLabel(nextMatch) },
+      }
+    })
+  }, [clearTimer, startSimTimer, startPenaltyTimer])
 
   // ── Standalone match flow (non-tournament) ─────────────────────
   const playMatch = useCallback(() => {
@@ -270,6 +387,7 @@ export function useGame() {
       enterLibertadores,
       startTournamentMatch, finishTournamentMatch, continueToNextMatch,
       playMatch, skipReveal, finishMatch, setSimSpeed,
+      skipPenaltiesReveal, finishPenalties, continuePenaltiesNextMatch,
     },
     slotViews,
   }

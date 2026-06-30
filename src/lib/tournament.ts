@@ -47,6 +47,7 @@ export interface TTie {
   aggA: number        // aggregate goals for clubA
   aggB: number
   winner: string | null
+  needsPenalties?: boolean   // tied on aggregate + away goals — must go to a shootout
   penalties?: { a: number; b: number }
 }
 
@@ -60,6 +61,9 @@ export interface LibertadoresTournament {
   nextUserMatchId: string | null
   // Stores "1º Gr.A", "2º Gr.B" for each qualified club
   seedings: Record<string, string>
+  // Set when the user's own tie needs a penalty shootout — UI must show it
+  // before the tournament can advance any further.
+  pendingPenaltyTieId: string | null
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -162,50 +166,101 @@ function makeTie(phase: KOPhase, clubA: string, clubB: string, md1: number, md2:
   return { tie, matches }
 }
 
-/** Resolve a tie's winner after both legs are played */
-export function resolveTie(tie: TTie, m1: TMatch, m2: TMatch): TTie {
-  const aggA = (m1.homeGoals ?? 0) + (m2.awayGoals ?? 0)   // clubA scored home in leg1, away in leg2
-  const aggB = (m1.awayGoals ?? 0) + (m2.homeGoals ?? 0)   // clubB scored away in leg1, home in leg2
+/**
+ * Resolve a tie from regulation result only (aggregate + away-goals).
+ * If still level, marks `needsPenalties: true` and leaves winner null —
+ * the caller decides whether to simulate instantly (AI) or show a shootout (user).
+ *
+ * NOTE: the away-goals rule does NOT apply to the Final, which is a single
+ * match (leg2 is an artificial 0-0 placeholder) — a drawn final goes
+ * straight to penalties.
+ */
+export function resolveTieRegulation(tie: TTie, m1: TMatch, m2: TMatch): TTie {
+  const aggA = (m1.homeGoals ?? 0) + (m2.awayGoals ?? 0)   // clubA: home in leg1, away in leg2
+  const aggB = (m1.awayGoals ?? 0) + (m2.homeGoals ?? 0)   // clubB: away in leg1, home in leg2
 
-  let winner: string
-  let pens: { a: number; b: number } | undefined
+  if (aggA > aggB) return { ...tie, aggA, aggB, winner: tie.clubA, needsPenalties: false }
+  if (aggB > aggA) return { ...tie, aggA, aggB, winner: tie.clubB, needsPenalties: false }
 
-  if (aggA > aggB) {
-    winner = tie.clubA
-  } else if (aggB > aggA) {
-    winner = tie.clubB
-  } else {
-    // Away goals: clubA's away goals (leg2) vs clubB's away goals (leg1)
-    const awayA = m2.awayGoals ?? 0
-    const awayB = m1.awayGoals ?? 0
-    if (awayA > awayB) {
-      winner = tie.clubA
-    } else if (awayB > awayA) {
-      winner = tie.clubB
-    } else {
-      // Penalties — simulate
-      const { pA, pB } = simulatePenalties()
-      pens = { a: pA, b: pB }
-      winner = pA > pB ? tie.clubA : tie.clubB
-    }
+  if (tie.phase !== 'final') {
+    const awayA = m2.awayGoals ?? 0   // clubA's goals scored away (in leg2)
+    const awayB = m1.awayGoals ?? 0   // clubB's goals scored away (in leg1)
+    if (awayA > awayB) return { ...tie, aggA, aggB, winner: tie.clubA, needsPenalties: false }
+    if (awayB > awayA) return { ...tie, aggA, aggB, winner: tie.clubB, needsPenalties: false }
   }
 
-  return { ...tie, aggA, aggB, winner, penalties: pens }
+  return { ...tie, aggA, aggB, winner: null, needsPenalties: true }
 }
 
-function simulatePenalties(): { pA: number; pB: number } {
-  let pA = 0, pB = 0
-  for (let i = 0; i < 5; i++) { if (Math.random() > 0.3) pA++ }
-  for (let i = 0; i < 5; i++) { if (Math.random() > 0.3) pB++ }
-  if (pA === pB) { // sudden death
-    for (let i = 0; i < 3; i++) {
-      const a = Math.random() > 0.3, b = Math.random() > 0.3
-      if (a && !b) { pA++; break }
-      if (b && !a) { pB++; break }
-    }
-    if (pA === pB) pA++ // force a winner
+// ── Penalty shootout ──────────────────────────────────────────────────────────
+
+export interface PenaltyKick {
+  side: 'A' | 'B'
+  scored: boolean
+  index: number       // 1-based overall order
+  scorer: string
+}
+
+export interface PenaltyShootoutResult {
+  clubA: string
+  clubB: string
+  kicks: PenaltyKick[]
+  winner: 'A' | 'B'
+  scoreA: number
+  scoreB: number
+}
+
+const CONVERSION_RATE = 0.78   // ~realistic pro conversion
+
+/** Alternating-kick shootout: 5 rounds each, sudden death if still level,
+ *  with early termination once a side can no longer be caught. */
+export function simulatePenaltyShootout(
+  clubA: string, clubB: string,
+  namesA?: string[], namesB?: string[]
+): PenaltyShootoutResult {
+  const listA = namesA?.length ? namesA : (DB[clubA]?.map(p => p[0]) ?? ['Jogador'])
+  const listB = namesB?.length ? namesB : (DB[clubB]?.map(p => p[0]) ?? ['Jogador'])
+
+  const kicks: PenaltyKick[] = []
+  let scoreA = 0, scoreB = 0, idx = 0
+  let takenA = 0, takenB = 0
+
+  function takeKick(side: 'A' | 'B') {
+    idx++
+    const scored = Math.random() < CONVERSION_RATE
+    const pool = side === 'A' ? listA : listB
+    const taken = side === 'A' ? takenA : takenB
+    const scorer = pool[taken % pool.length]
+    kicks.push({ side, scored, index: idx, scorer })
+    if (side === 'A') { takenA++; if (scored) scoreA++ }
+    else              { takenB++; if (scored) scoreB++ }
   }
-  return { pA, pB }
+
+  function decided(): boolean {
+    const remA = 5 - takenA
+    const remB = 5 - takenB
+    return scoreA > scoreB + remB || scoreB > scoreA + remA
+  }
+
+  // Regulation: alternate A,B up to 5 kicks each, stop early once mathematically decided
+  while (takenA < 5 || takenB < 5) {
+    if (takenA <= takenB && takenA < 5) takeKick('A')
+    else if (takenB < 5) takeKick('B')
+    if (takenA >= 1 && takenB >= 1 && decided()) break
+    if (takenA >= 5 && takenB >= 5) break
+  }
+
+  // Sudden death — pairs of kicks until one side is ahead after both have taken theirs
+  let suddenRounds = 0
+  while (scoreA === scoreB && suddenRounds < 20) {
+    takeKick('A')
+    takeKick('B')
+    suddenRounds++
+  }
+  if (scoreA === scoreB) scoreA++ // safety: force a winner if RNG never breaks the tie
+
+  const winner: 'A' | 'B' = scoreA > scoreB ? 'A' : 'B'
+  return { clubA, clubB, kicks, winner, scoreA, scoreB }
 }
 
 // ── Tournament creation ───────────────────────────────────────────────────────
@@ -239,6 +294,7 @@ export function createLibertadores(): LibertadoresTournament {
     champion: null,
     nextUserMatchId,
     seedings: {},
+    pendingPenaltyTieId: null,
   }
 }
 
@@ -266,6 +322,90 @@ function findNextUserMatch(
     if (kms.length) return kms[0].id
   }
   return null
+}
+
+// ── Shared phase-advancement loop ──────────────────────────────────────────────
+// Used both right after a match result is applied, and after the user finishes
+// watching a penalty shootout. Mutates local copies of matches/ties as it goes.
+
+function advanceTournament(
+  t: LibertadoresTournament,
+  matches: Record<string, TMatch>,
+  ties: TTie[],
+  phase: TPhase,
+  champion: string | null,
+  groups: TGroup[],
+  seedings: Record<string, string>,
+  userStrength: number
+): LibertadoresTournament {
+  const user = t.userClub
+  let safetyBreak = 0
+
+  while (phase !== 'groups' && phase !== 'ended') {
+    if (++safetyBreak > 20) break
+
+    // Resolve any fully-played ties via regulation (aggregate + away goals)
+    ties = ties.map(tie => {
+      if (tie.winner || tie.needsPenalties) return tie
+      const m1 = matches[tie.leg1Id], m2 = matches[tie.leg2Id]
+      if (m1?.played && m2?.played) return resolveTieRegulation(tie, m1, m2)
+      return tie
+    })
+
+    // Any tie level after regulation needs a shootout
+    const pendingPK = ties.find(tt => tt.needsPenalties && !tt.winner)
+    if (pendingPK) {
+      if (pendingPK.clubA === user || pendingPK.clubB === user) {
+        // User's own tie — pause here, UI must show the shootout
+        return { ...t, matches, groups, ties, phase, champion, seedings, nextUserMatchId: null, pendingPenaltyTieId: pendingPK.id }
+      }
+      // AI vs AI — resolve instantly, nobody needs to watch it
+      const shootout = simulatePenaltyShootout(pendingPK.clubA, pendingPK.clubB)
+      const winner = shootout.winner === 'A' ? pendingPK.clubA : pendingPK.clubB
+      ties = ties.map(tt => tt.id === pendingPK.id
+        ? { ...tt, winner, penalties: { a: shootout.scoreA, b: shootout.scoreB }, needsPenalties: false }
+        : tt)
+      continue
+    }
+
+    // If current phase has unresolved ties, stop — user or AI still needs to play
+    const currentTies = ties.filter(tt => tt.phase === phase)
+    if (!currentTies.length || !currentTies.every(tt => tt.winner)) {
+      const userHasMatch = Object.values(matches).some(
+        m => m.phase === phase && !m.played && (m.home === user || m.away === user)
+      )
+      if (userHasMatch) break  // wait for user to play
+
+      const toAuto = Object.values(matches).filter(
+        m => m.phase === phase && !m.played && m.home !== user && m.away !== user
+      )
+      if (!toAuto.length) break
+      for (const ai of toAuto) {
+        const { hg, ag } = simAI(ai.home, ai.away, userStrength)
+        matches[ai.id] = { ...ai, homeGoals: hg, awayGoals: ag, played: true }
+      }
+      continue
+    }
+
+    // All current-phase ties resolved → build next phase
+    const nextResult = buildNextKOPhase(phase as KOPhase, ties, matches)
+    if (!nextResult) break
+    nextResult.matches.forEach(m => { matches[m.id] = m })
+    ties = [...ties, ...nextResult.ties]
+    phase = nextResult.phase
+    if (phase === 'ended') {
+      champion = ties.find(tt => tt.phase === 'final')?.winner ?? null
+      break
+    }
+
+    const userInNewPhase = Object.values(matches).some(
+      m => m.phase === phase && !m.played && (m.home === user || m.away === user)
+    )
+    if (userInNewPhase) break
+  }
+
+  const nextUserMatchId = findNextUserMatch(groups, matches, user, ties)
+  return { ...t, matches, groups, ties, phase, champion, seedings, nextUserMatchId, pendingPenaltyTieId: null }
 }
 
 // ── Apply a match result ──────────────────────────────────────────────────────
@@ -303,8 +443,6 @@ export function applyMatchResult(
     matches[ai.id] = { ...ai, homeGoals: hg, awayGoals: ag, played: true }
   }
 
-  const user = t.userClub
-
   // Check if group stage is complete → unlock R16
   if (phase === 'groups') {
     const allGroupsPlayed = Object.values(matches).filter(m => m.phase === 'groups').every(m => m.played)
@@ -317,62 +455,30 @@ export function applyMatchResult(
     }
   }
 
-  // Knockout loop: resolve ties → build next phase → if user not in it, keep going
-  let safetyBreak = 0
-  while (phase !== 'groups' && phase !== 'ended') {
-    if (++safetyBreak > 10) break
+  return advanceTournament(t, matches, ties, phase, champion, groups, seedings, userStrength)
+}
 
-    // Resolve any fully-played ties
-    ties = ties.map(tie => {
-      if (tie.winner) return tie
-      const m1 = matches[tie.leg1Id], m2 = matches[tie.leg2Id]
-      if (m1?.played && m2?.played) return resolveTie(tie, m1, m2)
-      return tie
-    })
+/** Apply the result of a penalty shootout the user just watched, then resume
+ *  advancing the tournament (may immediately surface another pending shootout
+ *  in a rare back-to-back scenario, or continue building further rounds). */
+export function resolvePenaltyShootoutForTie(
+  t: LibertadoresTournament,
+  tieId: string,
+  winnerSide: 'A' | 'B',
+  scoreA: number,
+  scoreB: number,
+  userStrength: number
+): LibertadoresTournament {
+  const tie = t.ties.find(tt => tt.id === tieId)
+  if (!tie) return t
 
-    // If current phase has unresolved ties, stop — user or AI still needs to play
-    const currentTies = ties.filter(t => t.phase === phase)
-    if (!currentTies.length || !currentTies.every(t => t.winner)) {
-      // Check if there are unplayed matches where user is involved
-      const userHasMatch = Object.values(matches).some(
-        m => m.phase === phase && !m.played && (m.home === user || m.away === user)
-      )
-      if (userHasMatch) break  // wait for user to play
+  const winner = winnerSide === 'A' ? tie.clubA : tie.clubB
+  const ties = t.ties.map(tt => tt.id === tieId
+    ? { ...tt, winner, penalties: { a: scoreA, b: scoreB }, needsPenalties: false }
+    : tt)
+  const matches = { ...t.matches }
 
-      // Auto-simulate remaining AI matches (user already played their part)
-      const toAuto = Object.values(matches).filter(
-        m => m.phase === phase && !m.played && m.home !== user && m.away !== user
-      )
-      if (!toAuto.length) break  // nothing to simulate yet
-      for (const ai of toAuto) {
-        const { hg, ag } = simAI(ai.home, ai.away, userStrength)
-        matches[ai.id] = { ...ai, homeGoals: hg, awayGoals: ag, played: true }
-      }
-      continue  // re-resolve on next iteration
-    }
-
-    // All current-phase ties resolved → build next phase
-    const nextResult = buildNextKOPhase(phase as KOPhase, ties, matches)
-    if (!nextResult) break
-    nextResult.matches.forEach(m => { matches[m.id] = m })
-    ties = [...ties, ...nextResult.ties]
-    phase = nextResult.phase
-    if (phase === 'ended') {
-      champion = ties.find(t => t.phase === 'final')?.winner ?? null
-      break
-    }
-
-    // If user has a match in the new phase, stop and let them play it
-    const userInNewPhase = Object.values(matches).some(
-      m => m.phase === phase && !m.played && (m.home === user || m.away === user)
-    )
-    if (userInNewPhase) break
-    // Otherwise loop again to auto-simulate AI-only phase
-  }
-
-  const nextUserMatchId = findNextUserMatch(groups, matches, 'SULALEGENDS', ties)
-
-  return { ...t, matches, groups, ties, phase, champion, seedings, nextUserMatchId }
+  return advanceTournament(t, matches, ties, t.phase, t.champion, t.groups, t.seedings, userStrength)
 }
 
 // ── Build R16 from group results ──────────────────────────────────────────────
@@ -466,4 +572,10 @@ export function userTeamStrength(slots: GameState['slots']): number {
   const ps = slots.map(s => s.player).filter(Boolean) as PlacedPlayer[]
   if (!ps.length) return 80
   return ps.reduce((s, p) => s + p.o, 0) / ps.length
+}
+
+export function userSquadNames(slots: GameState['slots']): string[] {
+  if (!slots) return []
+  const ps = slots.map(s => s.player).filter(Boolean) as PlacedPlayer[]
+  return ps.map(p => p.n)
 }

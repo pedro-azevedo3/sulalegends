@@ -10,11 +10,12 @@ import SquadScreen       from '@/components/screens/SquadScreen'
 import MatchScreen       from '@/components/screens/MatchScreen'
 import ResultScreen      from '@/components/screens/ResultScreen'
 import TournamentScreen  from '@/components/screens/TournamentScreen'
+import PenaltiesScreen   from '@/components/screens/PenaltiesScreen'
 import type { SlotView } from '@/hooks/useGame'
 
 const STEP_LABEL: Record<string, string> = {
   config: 'Montar Time', draft: 'Sorteio', squad: 'Escalação',
-  match: 'Partida', result: 'Resultado', libertadores: 'Libertadores',
+  match: 'Partida', result: 'Resultado', libertadores: 'Libertadores', penalties: 'Pênaltis',
 }
 
 export default function GamePage() {
@@ -90,6 +91,14 @@ export default function GamePage() {
         />
       )}
       {screen === 'result'       && <ResultScreen state={state} onPlayAgain={actions.goToConfig} onHome={actions.home} />}
+      {screen === 'penalties'    && (
+        <PenaltiesScreen
+          state={state}
+          onSkip={actions.skipPenaltiesReveal}
+          onFinish={actions.finishPenalties}
+          onNextMatch={actions.continuePenaltiesNextMatch}
+        />
+      )}
       {screen === 'libertadores' && state.libertadores && (
         <TournamentScreen
           tournament={state.libertadores}

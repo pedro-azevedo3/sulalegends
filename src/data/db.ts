@@ -77,9 +77,9 @@ export const DB: Record<string, PlayerTuple[]> = {
     ['Alex','MD',78],['Fernandão','ATA',87],['Rafael Sóbis','ATA',84],['Alexandre Pato','ATA',84],
   ],
   'Cruzeiro 1976': [
-    ['Raul','GOL',81],['Nelinho','LD',83],['Joél','ZAG',80],['Rodrigues Neto','ZAG',79],
+    ['Raul','GOL',81],['Nelinho','LD',85],['Joél','ZAG',80],['Rodrigues Neto','ZAG',79],
     ['Zé Carlos','LE',78],['Wilson Piazza','VOL',82],['Dirce','MC',79],['Joãozinho','MC',84],
-    ['Jair Cruzeiro','PE',79],['Palinha','ATA',83],['Waldo','ATA',80],['Humberto','PD',77],
+    ['Jairzinho','PE',90],['Palinha','ATA',87],['Waldo','ATA',80],['Humberto','PD',77],
   ],
   'Fluminense 2023': [
     ['Fábio Flu','GOL',88],['Samuel Xavier','LD',82],['Nino','ZAG',84],['Manoel','ZAG',82],
