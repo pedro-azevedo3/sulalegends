@@ -19,7 +19,7 @@ interface Props {
 }
 
 export default function MatchScreen({ state, onSkip, onFinish, onNextMatch, onSetSpeed }: Props) {
-  const { sim, scoreP, scoreC, simDone, tournamentCtx, simSpeed } = state
+  const { sim, scoreP, scoreC, simDone, tournamentCtx, simSpeed, currentMinute } = state
   if (!sim) return null
 
   const inTournament  = !!tournamentCtx
@@ -36,8 +36,10 @@ export default function MatchScreen({ state, onSkip, onFinish, onNextMatch, onSe
   const leftColor     = isUserHome ? '#2ee37a' : '#ff8f6a'
   const rightColor    = isUserHome ? '#ff8f6a' : '#2ee37a'
 
-  const revealed = sim.events.slice(0, state.revealIdx)
+  // Goals only count once the match clock reaches that exact minute
+  const revealed = sim.events.filter(e => e.min <= currentMinute)
   const noGoals  = simDone && sim.events.length === 0
+  const clockMinute = Math.min(currentMinute, 90)
 
   return (
     <div style={{ flex: 1, padding: '20px 16px 40px', maxWidth: 640, margin: '0 auto', width: '100%', display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -58,6 +60,25 @@ export default function MatchScreen({ state, onSkip, onFinish, onNextMatch, onSe
           <span>{displayRight}</span>
         </div>
         <TeamLabel color={rightColor} name={rightName} sub={rightSub} />
+      </div>
+
+      {/* Match clock */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0,
+          background: simDone ? 'rgba(255,255,255,.06)' : 'rgba(46,227,122,.1)',
+          border: `1px solid ${simDone ? 'rgba(255,255,255,.15)' : 'rgba(46,227,122,.3)'}`,
+          borderRadius: 99, padding: '6px 14px',
+        }}>
+          {!simDone && <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#2ee37a', display: 'inline-block', animation: 'pulse 1.1s infinite' }} />}
+          <span style={{ fontFamily: "'Anton',sans-serif", fontSize: 18, color: simDone ? '#9fb8aa' : '#2ee37a', letterSpacing: .5 }}>
+            {clockMinute}'
+          </span>
+        </div>
+        {/* Progress bar 0-90 */}
+        <div style={{ flex: 1, height: 6, background: 'rgba(255,255,255,.08)', borderRadius: 99, overflow: 'hidden' }}>
+          <div style={{ height: '100%', width: `${(clockMinute / 90) * 100}%`, background: 'linear-gradient(90deg,#2ee37a,#f5c84b)', borderRadius: 99, transition: 'width .15s linear' }} />
+        </div>
       </div>
 
       {/* Status + Speed controls */}

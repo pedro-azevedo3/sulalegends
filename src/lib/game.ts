@@ -60,7 +60,7 @@ export interface GameState {
   pending: PlayerTuple | null
   pendingSlot: number | null
   sim: Simulation | null
-  revealIdx: number
+  currentMinute: number   // match clock — 0 to 90, goals only count when reached
   scoreP: number
   scoreC: number
   simDone: boolean
@@ -169,7 +169,7 @@ export function fresh(): GameState {
     screen: 'home', formation: '4-3-3', style: 'Equilibrado', diff: 'Normal',
     slots: null, draftClub: null, clubQueue: [], rerolls: 2,
     chosen: [], pending: null, pendingSlot: null,
-    sim: null, revealIdx: 0, scoreP: 0, scoreC: 0, simDone: false,
+    sim: null, currentMinute: 0, scoreP: 0, scoreC: 0, simDone: false,
     libertadores: null, tournamentCtx: null,
     roundPicked: false,
     simSpeed: 1,

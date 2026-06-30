@@ -37,28 +37,26 @@ export function useGame() {
     if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null }
   }, [])
 
-  // Shared sim tick — used by all timer starts
+  // Shared sim tick — advances the match clock by 1 minute.
+  // Goals only count once the clock reaches that exact minute.
   const simTick = useCallback(() => {
     setState(st => {
       if (!st.sim || st.simDone) return st
-      const i = st.revealIdx
-      if (i >= st.sim.events.length) { clearTimer(); return { ...st, simDone: true } }
-      const e = st.sim.events[i]
-      const done = i + 1 >= st.sim.events.length
+      const nextMinute = st.currentMinute + 1
+      const eventsThisMinute = st.sim.events.filter(e => e.min === nextMinute)
+      const scoreP = st.scoreP + eventsThisMinute.filter(e => e.team === 'p').length
+      const scoreC = st.scoreC + eventsThisMinute.filter(e => e.team === 'c').length
+      const done = nextMinute >= 90
       if (done) clearTimer()
-      return {
-        ...st, revealIdx: i + 1,
-        scoreP: st.scoreP + (e.team === 'p' ? 1 : 0),
-        scoreC: st.scoreC + (e.team === 'c' ? 1 : 0),
-        simDone: done,
-      }
+      return { ...st, currentMinute: nextMinute, scoreP, scoreC, simDone: done }
     })
   }, [clearTimer])
 
+  // Base 150ms per matchminute at 1x → full 90' match in ~13.5s
   const startSimTimer = useCallback((speed?: number) => {
     if (speed !== undefined) speedRef.current = speed
     if (timerRef.current) clearInterval(timerRef.current)
-    timerRef.current = setInterval(simTick, Math.round(1150 / speedRef.current))
+    timerRef.current = setInterval(simTick, Math.round(150 / speedRef.current))
   }, [simTick])
 
   const setSimSpeed = useCallback((speed: number) => {
@@ -174,11 +172,10 @@ export function useGame() {
       const opponentClub = match.home === 'SULALEGENDS' ? match.away : match.home
       const isUserHome   = match.home === 'SULALEGENDS'
       const sim = simulate(prev, { cpuClub: opponentClub })
-      if (sim.events.length > 0) setTimeout(() => startSimTimer(), 0)
+      setTimeout(() => startSimTimer(), 0)
       return {
         ...prev, screen: 'match', sim,
-        revealIdx: 0, scoreP: 0, scoreC: 0,
-        simDone: sim.events.length === 0,
+        currentMinute: 0, scoreP: 0, scoreC: 0, simDone: false,
         tournamentCtx: { matchId, opponentClub, isUserHome, phaseLabel: getPhaseLabel(match) },
       }
     })
@@ -218,14 +215,12 @@ export function useGame() {
       const opponent   = nextMatch.home === 'SULALEGENDS' ? nextMatch.away : nextMatch.home
       const nextIsHome = nextMatch.home === 'SULALEGENDS'
       const sim = simulate(prev, { cpuClub: opponent })
-
-      if (sim.events.length > 0) setTimeout(() => startSimTimer(), 0)
+      setTimeout(() => startSimTimer(), 0)
 
       return {
         ...prev,
         libertadores: updated, screen: 'match', sim,
-        revealIdx: 0, scoreP: 0, scoreC: 0,
-        simDone: sim.events.length === 0,
+        currentMinute: 0, scoreP: 0, scoreC: 0, simDone: false,
         tournamentCtx: { matchId: nextId, opponentClub: opponent, isUserHome: nextIsHome, phaseLabel: getPhaseLabel(nextMatch) },
       }
     })
@@ -236,12 +231,15 @@ export function useGame() {
     clearTimer()
     setState(prev => {
       const sim = simulate(prev)
-      if (sim.events.length > 0) setTimeout(() => startSimTimer(), 0)
-      return { ...prev, screen: 'match', sim, revealIdx: 0, scoreP: 0, scoreC: 0, simDone: sim.events.length === 0, tournamentCtx: null }
+      setTimeout(() => startSimTimer(), 0)
+      return { ...prev, screen: 'match', sim, currentMinute: 0, scoreP: 0, scoreC: 0, simDone: false, tournamentCtx: null }
     })
   }, [clearTimer, startSimTimer])
 
-  const skipReveal    = useCallback(() => { clearTimer(); setState(prev => !prev.sim ? prev : ({ ...prev, revealIdx: prev.sim.events.length, scoreP: prev.sim.goalsP, scoreC: prev.sim.goalsC, simDone: true })) }, [clearTimer])
+  const skipReveal = useCallback(() => {
+    clearTimer()
+    setState(prev => !prev.sim ? prev : ({ ...prev, currentMinute: 90, scoreP: prev.sim.goalsP, scoreC: prev.sim.goalsC, simDone: true }))
+  }, [clearTimer])
   const finishMatch   = useCallback(() => setState(prev => ({ ...prev, screen: 'result' })), [])
 
   home; restart // keep references live
