@@ -33,7 +33,7 @@ export const DB: Record<string, PlayerTuple[]> = {
   'São Paulo 1993': [
     ['Zetti','GOL',85],['Cafu','LD',88],['Antônio Carlos','ZAG',82],['Ronaldão','ZAG',81],
     ['Válber','LE',79],['Pintado','VOL',80],['Toninho Cerezo','VOL',86],['Raí','MEI',91],
-    ['Müller','MD',85],['Palhinha','ATA',82],['Macedo','ATA',80],['Dinho','ZAG',79],
+    ['Müller','ATA',85],['Palhinha','ATA',82],['Macedo','ATA',80],['Dinho','ZAG',79],
   ],
   'Palmeiras 1999': [
     ['Marcos','GOL',87],['Arce','LD',83],['Roque Júnior','ZAG',84],['Júnior Baiano','ZAG',82],
@@ -68,8 +68,8 @@ export const DB: Record<string, PlayerTuple[]> = {
   ],
   'Atlético-MG 2021': [
     ['Everson','GOL',83],['Mariano','LD',80],['Júnior Alonso','ZAG',84],['Nathan Silva','ZAG',81],
-    ['Guilherme Arana','LE',83],['Jair','VOL',83],['Allan','MC',82],['Nacho Fernández','MEI',82],
-    ['Savarino','MD',80],['Hulk','ATA',83],['Keno','PE',78],['Diego Costa','ATA',80],
+    ['Guilherme Arana','LE',83],['Jair','VOL',83],['Allan','MC',82],['Nacho Fernández','MEI',84],
+    ['Savarino','MC',84],['Hulk','ATA',87],['Keno','PE',78],['Diego Costa','ATA',80],
   ],
   'Internacional 2006': [
     ['Clemer','GOL',80],['Ceará','LD',79],['Índio','ZAG',81],['Fabiano Eller','ZAG',79],
@@ -161,9 +161,10 @@ export const DB: Record<string, PlayerTuple[]> = {
     ['Julio C. Cortés','PE',83],['Abbadie','PD',82],
   ],
   'Peñarol 1982': [
-    ['Rodríguez P','GOL',79],['Cabrera P','LD',77],['Aguirregaray','ZAG',79],['De León','ZAG',80],
-    ['Paz','LE',76],['Bica','VOL',79],['Bentancor','MC',78],['Paladino','MD',77],
-    ['Morena','PE',84],['Olivera','ATA',80],['Ramos P','ATA',79],['Gabrich','ATA',78],
+    ['Gustavo Fernández','GOL',81],['Víctor Diogo','LD',79],['Nelson Gutiérrez','ZAG',80],
+    ['Walter Oliveira','ZAG',80],['Juan V. Morales','LE',78],['Néstor Montelongo','LD',78],
+    ['Miguel Bossio','VOL',79],['Mario Saralegui','MC',80],['Jair Gaúcho','MC',81],
+    ['Fernando Morena','ATA',86],['Venancio Ramos','ATA',80],['Ernesto Vargas','ATA',79],
   ],
 
   // ── COLÔMBIA / EQUADOR / PARAGUAI ────────────────────────────
@@ -199,7 +200,8 @@ export const DB: Record<string, PlayerTuple[]> = {
   'Cruzeiro 2014': [
     ['Fábio','GOL',86],['Mayke','LD',79],['Dedé','ZAG',86],['Léo','ZAG',82],
     ['Egídio','LE',81],['Lucas Silva','VOL',83],['Nilton','VOL',80],['Everton Ribeiro','MEI',85],
-    ['Ricardo Goulart','MEI',84],['Marcelo Moreno','ATA',83],['Willian','PE',82],['Raphael Veiga C','MC',79],
+    ['Ricardo Goulart','MEI',84],['Marcelo Moreno','ATA',83],['Willian','PE',82],
+    ['William Bigode','PE',81],['Dagoberto','ATA',80],['Borges C','ATA',81],
   ],
 
   // ARGENTINA
@@ -465,8 +467,9 @@ export const JERSEY: Record<string, Record<string, number>> = {
     'Ledesma P':6,'Juan Joya':7,'Néstor Gonçalves':8,'Alberto Spencer':9,'Pedro Rocha':10,'Julio C. Cortés':11,'Abbadie':17,
   },
   'Peñarol 1982': {
-    'Rodríguez P':1,'Cabrera P':2,'Paz':3,'Aguirregaray':4,'De León':5,
-    'Bica':6,'Paladino':7,'Bentancor':8,'Olivera':9,'Morena':10,'Ramos P':11,'Gabrich':19,
+    'Gustavo Fernández':1,'Víctor Diogo':2,'Walter Oliveira':3,'Nelson Gutiérrez':4,'Néstor Montelongo':5,
+    'Juan V. Morales':6,'Mario Saralegui':7,'Miguel Bossio':8,'Fernando Morena':9,'Jair Gaúcho':10,
+    'Venancio Ramos':11,'Ernesto Vargas':17,
   },
   'Once Caldas 2004': {
     'Mondragón':1,'Dinas':2,'Trejos':3,'Wilson':4,'Ruiz':5,
@@ -492,7 +495,7 @@ export const JERSEY: Record<string, Record<string, number>> = {
   'Cruzeiro 2014': {
     'Fábio':1,'Mayke':2,'Léo':3,'Dedé':4,'Egídio':6,
     'Nilton':5,'Lucas Silva':8,'Willian':7,'Everton Ribeiro':10,'Ricardo Goulart':9,
-    'Marcelo Moreno':11,'Raphael Veiga C':17,
+    'Marcelo Moreno':11,'William Bigode':17,'Dagoberto':19,'Borges C':99,
   },
 }
 
