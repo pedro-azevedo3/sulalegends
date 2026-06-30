@@ -327,7 +327,7 @@ export const DB: Record<string, PlayerTuple[]> = {
   'Cruz Azul 2001': [
     ['Cristante','GOL',80],['Francisco Palencia','LD',81],['Del Olmo','ZAG',80],
     ['Giménez Cruz','ZAG',79],['Fernández Cruz','LE',78],['Gerardo Torrado','VOL',82],
-    ['Héctor Coudet','MC',82],['Marcelinho Carioca','MEI',84],['Francisco Fonseca','PE',79],
+    ['Héctor Coudet','MC',82],['Francisco Fonseca','PE',79],
     ['Jared Borgetti','ATA',85],['Carlos Hermosillo','ATA',83],['Graziani Cruz','MD',79],
   ],
 
