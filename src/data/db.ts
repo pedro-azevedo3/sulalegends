@@ -9,6 +9,24 @@ export const DB: Record<string, PlayerTuple[]> = {
     ['Dalmo','LE',80],['Zito','VOL',86],['Mengálvio','MC',83],['Dorval','PD',82],
     ['Coutinho','ATA',88],['Pelé','ATA',99],['Pepe','PE',88],['Pagão','ATA',80],
   ],
+  'São Paulo 2005': [
+    ['Rogério Ceni','GOL',91],['Cicinho','LD',84],['Fabão','ZAG',82],['Diego Lugano','ZAG',85],
+    ['Edcarlos','ZAG',80],['Júnior SP','LE',80],['Josué','VOL',83],['Mineiro','VOL',83],
+    ['Danilo SP','MEI',84],['Amoroso','ATA',85],['Aloísio','ATA',82],['Grafite','ATA',83],
+    ['Christian','MEI',79],['Alex Silva','ZAG',79],
+  ],
+  'Athletico Paranaense 2018': [
+    ['Santos AP','GOL',85],['Jonathan','LD',80],['Thiago Heleno','ZAG',82],['Léo Pereira AP','ZAG',84],
+    ['Renan Lodi','LE',81],['Bruno Guimarães','VOL',83],['Lucho González','MC',83],['Raphael Veiga AP','MEI',84],
+    ['Nikão','PE',84],['Marcelo Cirino','MD',80],['Pablo','ATA',85],
+    ['Rony AP','ATA',83],['Bergson','ATA',79],
+  ],
+  'Athletico Paranaense 2021': [
+    ['Santos AP','GOL',83],['Marcinho AP','LD',79],['Pedro Henrique','ZAG',81],['Thiago Heleno','ZAG',84],
+    ['Nico Hernández','ZAG',80],['Erick','VOL',80],['Léo Cittadini','MC',80],['Abner','LE',80],
+    ['Nikão','PE',83],['David Terans','MEI',82],['Renato Kayzer','ATA',83],
+    ['Vitinho AP','PE',80],['Christian AP','MC',79],
+  ],
    'Santos 2011': [
     ['Rafael','GOL',84],['Danilo Santos','LD',80],['Edu Dracena','ZAG',82],['Durval','ZAG',80],
     ['Léo','LE',81],['Arouca','VOL',83],['Elano','MC',82],['Ganso','MEI',87],
