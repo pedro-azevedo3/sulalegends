@@ -9,10 +9,10 @@ export const DB: Record<string, PlayerTuple[]> = {
     ['Dalmo','LE',80],['Zito','VOL',86],['Mengálvio','MC',83],['Dorval','PD',82],
     ['Coutinho','ATA',88],['Pelé','ATA',99],['Pepe','PE',88],['Pagão','ATA',80],
   ],
-  'Santos 2011': [
-    ['Rafael','GOL',84],['Léo','LD',81],['Edu Dracena','ZAG',82],['Durval','ZAG',80],
-    ['Arouca','VOL',83],['Elano','MC',82],['Ganso','MEI',87],['Neymar','PE',94],
-    ['Robinho','PD',86],['Borges','ATA',83],['Alan Patrick','MC',79],['Bruno Rodrigo','ZAG',79],
+   'Santos 2011': [
+    ['Rafael','GOL',84],['Danilo Santos','LD',80],['Edu Dracena','ZAG',82],['Durval','ZAG',80],
+    ['Léo','LE',81],['Arouca','VOL',83],['Elano','MC',82],['Ganso','MEI',87],
+    ['Neymar','PE',94],['Borges','ATA',83],['Alan Patrick','MC',79],['Bruno Rodrigo','ZAG',79],
   ],
   'Flamengo 1981': [
     ['Raul','GOL',82],['Leandro','LD',88],['Marinho','ZAG',83],['Mozer','ZAG',83],
@@ -46,10 +46,11 @@ export const DB: Record<string, PlayerTuple[]> = {
     ['Gabriel Menino','MD',79],['Dudu','PE',86],['Rony','ATA',82],['Breno Lopes','ATA',78],
     ['Felipe Melo','VOL',80],
   ],
-  'Grêmio 1983': [
-    ['Mazaropi','GOL',84],['Caio Júnior','LD',78],['Mauro Galvão','ZAG',84],['Casagrande','ZAG',81],
-    ['Clemer','LE',77],['Bino','VOL',79],['Caça-Rato','MC',78],['Paulo César','MD',77],
-    ['Renato Gaúcho','MEI',85],['Tita','PE',83],['Osvaldo','ATA',83],['Paulo Nunes','ATA',80],
+'Grêmio 1983': [
+    ['Mazaropi','GOL',85],['Paulo Roberto','LD',82],['Baidek','ZAG',82],['Hugo De León','ZAG',86],
+    ['Paulo César Magalhães','LE',80],['China','VOL',81],['Osvaldo','VOL',81],['Mário Sérgio','MC',84],
+    ['Renato Gaúcho','PD',89],['Tarciso','ATA',84],['Paulo César Caju','PE',83],
+    ['Tita','MEI',83],['Caio','ATA',79],['Bonamigo','VOL',79],
   ],
   'Grêmio 2017': [
     ['Marcelo Grohe','GOL',83],['Léo Moura','LD',80],['Pedro Geromel','ZAG',88],['Kannemann','ZAG',88],
@@ -121,15 +122,17 @@ export const DB: Record<string, PlayerTuple[]> = {
     ['Nacho Fernández','MC',84],['Gonzalo Martínez','MEI',84],['Juanfer Quintero','MEI',84],
     ['Lucas Pratto','ATA',83],['Rafael Borré','ATA',82],
   ],
-  'Independiente 1984': [
-    ['Fillol','GOL',88],['Galván','LD',80],['Percudani','ZAG',79],['Trossero','ZAG',81],
-    ['Tarantini','LE',80],['Marangoni','VOL',80],['Sabella','MC',83],['Bertoni','MD',82],
-    ['Bochini','MEI',88],['Larrosa','PE',80],['Alzamendi','ATA',81],['García I','ATA',79],
+   'Independiente 1984': [
+    ['Goyén','GOL',83],['Clausen','LD',82],['Villaverde','ZAG',84],['Trossero','ZAG',83],
+    ['Carlos Enrique','LE',80],['Giusti','VOL',84],['Marangoni','MC',84],['Bochini','MEI',90],
+    ['Burruchaga','MC',87],['Percudani','ATA',81],['Barberón','ATA',80],
+    ['Buffarini','LD',79],['Monzón','ZAG',80],
   ],
   'Estudiantes 1968': [
-    ['Madero','GOL',82],['Malbernat','LD',79],['Pachamé','ZAG',80],['Manera','ZAG',78],
-    ['Ribaudo','LE',77],['Bilardo','VOL',78],['Flores E','MC',80],['Conigliaro','MD',79],
-    ['Verón J','PE',83],['Togneri','MC',78],['Poletti','ATA',82],['Medina','ATA',78],
+    ['Poletti','GOL',84],['Malbernat','LE',80],['Aguirre Suárez','ZAG',81],['Madero','ZAG',80],
+    ['Medina','LD',79],['Bilardo','VOL',82],['Pachamé','VOL',80],['Togneri','MC',80],
+    ['Ribaudo','MEI',80],['Conigliaro','ATA',81],['Verón J','PE',86],
+    ['Echecopar','MC',79],['Manera','ZAG',78],
   ],
   'Estudiantes 2009': [
     ['Migliore','GOL',80],['Cellay','LD',78],['Demichelis','ZAG',85],['Desábato','ZAG',79],
@@ -211,25 +214,28 @@ export const DB: Record<string, PlayerTuple[]> = {
     ['Cárdenas','PE',84],['Rulli','ME',79],['Maschio','ATA',83],['Raffo','ATA',80],
   ],
   'Estudiantes 1969': [
-    ['Madero','GOL',83],['Malbernat','LD',80],['Aguirre Suárez','ZAG',83],['Manera','ZAG',80],
-    ['Ribaudo','LE',78],['Bilardo','VOL',80],['Flores 69','MC',81],['Conigliaro 69','MD',80],
-    ['Verón Juan','PE',85],['Poletti 69','ATA',84],['Ferreiro','ATA',81],['Togneri 69','MC',79],
+    ['Poletti 69','GOL',84],['Malbernat','LE',80],['Aguirre Suárez','ZAG',82],['Madero','ZAG',80],
+    ['Medina 69','LD',79],['Bilardo','VOL',82],['Pachamé 69','VOL',80],['Togneri 69','MC',80],
+    ['Ribaudo','MEI',80],['Conigliaro 69','ATA',81],['Verón Juan','PE',86],
+    ['Echecopar 69','MC',79],['Ferreiro','ATA',79],
   ],
   'Independiente 1972': [
-    ['Miguez','GOL',82],['Galván 72','LD',80],['Montes','ZAG',81],['Commisso','ZAG',80],
-    ['Sábato','LE',79],['Villaverde','VOL',80],['Babington','MC',83],['Bochini 72','MEI',86],
-    ['Bertoni 72','PD',82],['Ruiz I','PE',80],['Balbuena','ATA',81],['Leva','ATA',79],
+    ['Santoro','GOL',84],['Commisso','LD',79],['Miguel López','ZAG',80],['Francisco Sá','ZAG',82],
+    ['Pavoni','LE',84],['Raimondo','VOL',80],['Pastoriza','MC',84],['Semenewicz','VOL',80],
+    ['Balbuena','PD',82],['Maglioni','ATA',83],['Mírcoli','PE',79],
+    ['Bochini 72','MEI',83],['Bertoni 72','PD',81],
   ],
   'Newell\'s Old Boys 1992': [
-    ['Scoponi','GOL',82],['Gamboa','LD',79],['Pascuttini','ZAG',80],['Siviski','ZAG',79],
-    ['Catala','LE',78],['Llop','VOL',80],['Gorosito','MC',83],['Zamora','MC',79],
-    ['Abel Balbo','ATA',85],['Alfaro','MD',79],['Batistuta?','PE',80],['Rinaldi','ATA',79],
+    ['Scoponi','GOL',82],['Gamboa','LD',81],['Pochettino','ZAG',84],['Berizzo','ZAG',83],
+    ['Saldaña','LE',78],['Berti','MD',80],['Llop','VOL',82],['Martino','MEI',87],
+    ['Alfredo Mendoza','MC',79],['Zamora','ATA',82],['Domizzi','ATA',81],
+    ['Lunari','MC',79],['Garfagnoli','ZAG',78],
   ],
   'Boca Juniors 2001': [
-    ['Óscar Córdoba','GOL',85],['Hugo Ibarra','LD',82],['Jorge Bermúdez','ZAG',84],['Walter Samuel','ZAG',87],
-    ['Aníbal Matellán','LE',79],['Sebastián Battaglia','VOL',82],['Mauricio Serna','VOL',81],
+    ['Óscar Córdoba','GOL',85],['Hugo Ibarra','LD',82],['Jorge Bermúdez','ZAG',84],['Aníbal Matellán','ZAG',79],
+    ['Mauricio Serna','VOL',81],['Sebastián Battaglia','VOL',82],['Traverso','MC',79],
     ['Riquelme','MEI',91],['Barros Schelotto','MD',85],['Martín Palermo','ATA',87],
-    ['Tevez 01','ATA',80],['Traverso','MC',79],
+    ['Tevez 01','ATA',80],
   ],
 
   // COLÔMBIA
@@ -246,18 +252,18 @@ export const DB: Record<string, PlayerTuple[]> = {
     ['Miguel Borja','ATA',84],['Dayro Moreno','ATA',82],['Alejandro Guerra','PE',81],
   ],
   'América de Cali 1987': [
-    ['Luis Crena','GOL',79],['Carlos Molina','LD',79],['Abelardo Moreno','ZAG',80],
-    ['Elber Rueda','ZAG',79],['Bernardo Redín','LE',79],['Carlos Estrada','VOL',80],
-    ['Hector Borja','MC',80],['Willington Ortiz','PE',87],['Albeiro Usuriaga 87','ATA',83],
-    ['Jaime Morón','ATA',80],['José Alexis Mera','MC',79],['Victor Bonilla','MD',78],
+    ['Falcioni','GOL',86],['Hugo Valencia','LD',79],['Víctor Espinoza','ZAG',80],['Álvaro Aponte','ZAG',79],
+    ['Jairo Ampudia','LE',78],['Víctor Luna','VOL',81],['Sergio Santín','MC',82],['Roberto Cabañas','MEI',86],
+    ['Willington Ortiz','PD',88],['Ricardo Gareca','ATA',84],['Juan Manuel Battaglia','PE',82],
+    ['Antony de Ávila','ATA',83],['Alex Escobar','MD',79],
   ],
 
   // CHILE
   'Colo-Colo 1991': [
-    ['Marcelo Espinoza','GOL',82],['Raúl Ormeño','LD',79],['Oscar Rojas','ZAG',82],
-    ['Marcelo Cornejo','ZAG',79],['Marcelo Ramírez','LE',81],['Jaime Pizarro','VOL',81],
-    ['Patricio Millas','MC',83],['Carlos Gamboa','MC',82],['Jaime Vera','ME',80],
-    ['Marcelo Barticciotto','ATA',86],['Luis Pérez','ATA',80],['Lizardo Garrido','MD',79],
+    ['Daniel Morón','GOL',84],['Miguel Ramírez','LD',79],['Javier Margas','ZAG',82],['Lizardo Garrido','ZAG',81],
+    ['Eduardo Vilches','LE',79],['Juan Carlos Peralta','VOL',79],['Jaime Pizarro','VOL',84],['Rubén Espinoza','MC',81],
+    ['Gabriel Mendoza','MD',80],['Marcelo Barticciotto','MEI',86],['Rubén Martínez','ATA',82],
+    ['Ricardo Dabrowski','ATA',82],['Luis Pérez','ATA',80],
   ],
 
   // URUGUAI
@@ -350,8 +356,8 @@ export const JERSEY: Record<string, Record<string, number>> = {
     'Zito':6,'Dorval':7,'Mengálvio':8,'Coutinho':9,'Pelé':10,'Pepe':11,'Pagão':19,
   },
   'Santos 2011': {
-    'Rafael':1,'Léo':2,'Bruno Rodrigo':3,'Edu Dracena':4,'Durval':5,
-    'Arouca':6,'Robinho':7,'Elano':8,'Borges':9,'Ganso':10,'Neymar':11,'Alan Patrick':17,
+    'Rafael':1,'Danilo Santos':2,'Bruno Rodrigo':3,'Edu Dracena':4,'Durval':5,
+    'Léo':6,'Elano':7,'Arouca':8,'Borges':9,'Ganso':10,'Neymar':11,'Alan Patrick':17,
   },
   'Flamengo 1981': {
     'Raul':1,'Leandro':2,'Marinho':3,'Mozer':4,'Andrade':5,
@@ -381,8 +387,9 @@ export const JERSEY: Record<string, Record<string, number>> = {
     'Breno Lopes':18,'Felipe Melo':30,
   },
   'Grêmio 1983': {
-    'Mazaropi':1,'Caio Júnior':2,'Clemer':3,'Mauro Galvão':4,'Casagrande':5,
-    'Bino':6,'Paulo César':7,'Caça-Rato':8,'Osvaldo':9,'Renato Gaúcho':10,'Tita':11,'Paulo Nunes':19,
+    'Mazaropi':1,'Paulo Roberto':2,'Baidek':3,'Paulo César Magalhães':4,'China':5,
+    'Hugo De León':6,'Renato Gaúcho':7,'Osvaldo':8,'Tarciso':9,'Paulo César Caju':10,
+    'Mário Sérgio':11,'Bonamigo':15,'Caio':16,'Tita':17,
   },
   'Grêmio 2017': {
     'Marcelo Grohe':1,'Léo Moura':2,'Pedro Geromel':3,'Kannemann':4,'Maicon':5,
@@ -439,12 +446,39 @@ export const JERSEY: Record<string, Record<string, number>> = {
     'Gonzalo Martínez':11,'Rafael Borré':19,
   },
   'Independiente 1984': {
-    'Fillol':1,'Galván':2,'Tarantini':3,'Percudani':4,'Trossero':5,
-    'Marangoni':6,'Bertoni':7,'Sabella':8,'García I':11,'Bochini':10,'Alzamendi':9,'Larrosa':17,
+    'Goyén':1,'Villaverde':2,'Carlos Enrique':3,'Clausen':4,'Marangoni':5,
+    'Trossero':6,'Burruchaga':7,'Giusti':8,'Percudani':9,'Bochini':10,
+    'Barberón':11,'Monzón':13,'Buffarini':16,
+  },
+  'Independiente 1972': {
+    'Santoro':1,'Commisso':2,'Pavoni':3,'Francisco Sá':4,'Miguel López':5,
+    'Raimondo':6,'Balbuena':7,'Pastoriza':8,'Maglioni':9,'Semenewicz':10,
+    'Mírcoli':11,'Bochini 72':16,'Bertoni 72':17,
   },
   'Estudiantes 1968': {
-    'Madero':1,'Malbernat':2,'Ribaudo':3,'Manera':4,'Pachamé':5,
-    'Bilardo':6,'Conigliaro':7,'Flores E':8,'Poletti':9,'Verón J':10,'Medina':11,'Togneri':17,
+    'Poletti':1,'Malbernat':3,'Aguirre Suárez':2,'Madero':5,'Medina':4,
+    'Pachamé':6,'Bilardo':8,'Togneri':10,'Ribaudo':7,'Conigliaro':9,
+    'Verón J':11,'Echecopar':16,'Manera':13,
+  },
+  'Estudiantes 1969': {
+    'Poletti 69':1,'Malbernat':3,'Aguirre Suárez':2,'Madero':5,'Medina 69':4,
+    'Pachamé 69':6,'Bilardo':8,'Togneri 69':10,'Ribaudo':7,'Conigliaro 69':9,
+    'Verón Juan':11,'Echecopar 69':16,'Ferreiro':18,
+  },
+  'Newell\'s Old Boys 1992': {
+    'Scoponi':1,'Pochettino':2,'Saldaña':3,'Gamboa':4,'Llop':5,
+    'Berizzo':6,'Berti':7,'Martino':8,'Domizzi':9,'Alfredo Mendoza':10,
+    'Zamora':11,'Garfagnoli':14,'Lunari':16,
+  },
+  'América de Cali 1987': {
+    'Falcioni':1,'Hugo Valencia':2,'Víctor Espinoza':3,'Álvaro Aponte':4,'Víctor Luna':5,
+    'Jairo Ampudia':6,'Willington Ortiz':7,'Sergio Santín':8,'Ricardo Gareca':9,'Roberto Cabañas':10,
+    'Juan Manuel Battaglia':11,'Antony de Ávila':16,'Alex Escobar':18,
+  },
+  'Colo-Colo 1991': {
+    'Daniel Morón':1,'Rubén Espinoza':2,'Lizardo Garrido':3,'Javier Margas':4,'Eduardo Vilches':5,
+    'Miguel Ramírez':6,'Marcelo Barticciotto':7,'Ricardo Dabrowski':9,'Jaime Pizarro':10,'Rubén Martínez':11,
+    'Juan Carlos Peralta':13,'Gabriel Mendoza':15,'Luis Pérez':19,
   },
   'Estudiantes 2009': {
     'Migliore':1,'Cellay':2,'Clemente Rodríguez':3,'Desábato':4,'Demichelis':5,
