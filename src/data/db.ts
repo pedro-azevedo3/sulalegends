@@ -7,7 +7,7 @@ export const DB: Record<string, PlayerTuple[]> = {
   'Santos 1963': [
     ['Gilmar','GOL',88],['Lima','LD',82],['Mauro Ramos','ZAG',85],['Calvet','ZAG',81],
     ['Dalmo','LE',80],['Zito','VOL',86],['Mengálvio','MC',83],['Dorval','PD',82],
-    ['Coutinho','ATA',88],['Pelé','ATA',99],['Pepe','PE',88],['Pagão','ATA',80],
+    ['Coutinho','ATA',88],['Pelé','MEI',99],['Pepe','PE',88],['Pagão','ATA',80],
   ],
   'São Paulo 2005': [
     ['Rogério Ceni','GOL',91],['Cicinho','LD',84],['Fabão','ZAG',82],['Diego Lugano','ZAG',85],
@@ -333,7 +333,7 @@ export const DB: Record<string, PlayerTuple[]> = {
   'Vasco da Gama 1998': [
     ['Carlos Germano','GOL',82],['Odvan','ZAG',81],['Mauro Galvão 98','ZAG',82],
     ['Rafael Vasco','LD',79],['Flávio V','LE',79],['Carlos Alberto V','VOL',80],
-    ['Marcos Assunção','MC',83],['Edmundo','ATA',90],['Romário','ATA',93],
+    ['Edmundo','ATA',90],['Romário','ATA',93],
     ['Donizete V','MC',81],['Felipe V','MD',81],['Luizão','ATA',82],
   ],
   'Athletico Paranaense 2022': [
