@@ -229,33 +229,32 @@ function CampaignCard({ tournament, squad, onPlayAgain, onHome }: {
     if (downloading) return
     setDownloading(true)
     try {
-      // Wait for web fonts before drawing
       await document.fonts.ready
 
-      const SCALE  = 2
-      const W      = 440
-      const PAD    = 16
-      const HEADER_H = 44
-      const RESULT_H = 88
-      const STATS_H  = 76
-      const ROW_H    = 36
-      const FOOTER_H = 36
-      const totalH = HEADER_H + RESULT_H + STATS_H + players.length * ROW_H + FOOTER_H
+      // ── Layout constants ─────────────────────────────────────────
+      // Compact card: 2-column player grid → ~square, ideal for mobile sharing
+      const SCALE    = 3          // 1200px output width — high res for any platform
+      const W        = 400
+      const PAD      = 14
+      const HEADER_H = 36
+      const RESULT_H = 78
+      const STATS_H  = 62
+      const ROW_H    = 28         // player row height
+      const COL_H    = 8          // vertical padding around player section
+      const FOOTER_H = 30
+      const HALF     = Math.ceil(players.length / 2)  // rows in each column
+      const COL_W    = (W - PAD * 2 - 1) / 2         // each player column width
+      const PLAYERS_H = HALF * ROW_H + COL_H * 2
+      const totalH   = HEADER_H + RESULT_H + STATS_H + PLAYERS_H + FOOTER_H
 
-      const canvas = document.createElement('canvas')
+      const canvas  = document.createElement('canvas')
       canvas.width  = W * SCALE
       canvas.height = totalH * SCALE
-      const ctx = canvas.getContext('2d')!
+      const ctx     = canvas.getContext('2d')!
       ctx.scale(SCALE, SCALE)
 
-      const line = (y: number, a = 0.07) => {
-        ctx.fillStyle = `rgba(255,255,255,${a})`
-        ctx.fillRect(0, y, W, 1)
-      }
-      const vline = (x: number, y: number, h: number) => {
-        ctx.fillStyle = 'rgba(255,255,255,0.07)'
-        ctx.fillRect(x, y, 1, h)
-      }
+      const hline = (y: number, a = 0.07) => { ctx.fillStyle = `rgba(255,255,255,${a})`; ctx.fillRect(0, y, W, 1) }
+      const vline = (x: number, y: number, h: number, a = 0.07) => { ctx.fillStyle = `rgba(255,255,255,${a})`; ctx.fillRect(x, y, 1, h) }
 
       // ── Background ──────────────────────────────────────────────
       ctx.fillStyle = '#0b1a0f'
@@ -264,84 +263,93 @@ function CampaignCard({ tournament, squad, onPlayAgain, onHome }: {
       // ── Header ──────────────────────────────────────────────────
       ctx.fillStyle = 'rgba(255,255,255,0.03)'
       ctx.fillRect(0, 0, W, HEADER_H)
-      ctx.fillStyle = '#4a7a60'
-      ctx.font = `700 10px "Barlow Condensed", "Arial Narrow", sans-serif`
-      ctx.letterSpacing = '2px'
       ctx.textBaseline = 'middle'
+      ctx.fillStyle = '#4a7a60'
+      ctx.letterSpacing = '2px'
+      ctx.font = `700 9px "Barlow Condensed", "Arial Narrow", sans-serif`
       ctx.textAlign = 'left'
       ctx.fillText('COPA SULALEGENDS', PAD, HEADER_H / 2)
-      ctx.fillStyle = '#3a5a3a'
-      ctx.font = `500 10px "Barlow Condensed", "Arial Narrow", sans-serif`
+      ctx.fillStyle = '#2e4a3a'
+      ctx.font = `500 9px "Barlow Condensed", "Arial Narrow", sans-serif`
       ctx.textAlign = 'right'
       ctx.fillText('SULALEGENDS', W - PAD, HEADER_H / 2)
       ctx.letterSpacing = '0px'
-      line(HEADER_H)
+      hline(HEADER_H)
 
       // ── Result ──────────────────────────────────────────────────
       ctx.textAlign = 'center'
       ctx.fillStyle = resultColor
-      ctx.font = `400 52px "Anton", "Arial Black", Impact, sans-serif`
-      ctx.fillText(resultLabel, W / 2, HEADER_H + RESULT_H * 0.58)
-      line(HEADER_H + RESULT_H)
+      ctx.font = `400 46px "Anton", "Arial Black", Impact, sans-serif`
+      ctx.fillText(resultLabel, W / 2, HEADER_H + RESULT_H * 0.56)
+      hline(HEADER_H + RESULT_H)
 
       // ── Stats grid ──────────────────────────────────────────────
-      const colW = W / 4
-      const statsBase = HEADER_H + RESULT_H
-      const statsItems = [
+      const sBase = HEADER_H + RESULT_H
+      const sColW = W / 4
+      ;[
         { label: 'GOLS PRÓ', val: stats.gf, color: '#2ee37a' },
         { label: 'SOFRIDOS', val: stats.ga, color: '#ff8f6a' },
         { label: 'OVERALL',  val: avgOvr,   color: '#f5c84b' },
         { label: 'VITÓRIAS', val: stats.w,  color: '#fff'    },
-      ]
-      statsItems.forEach(({ label, val, color }, i) => {
-        const cx = colW * i + colW / 2
+      ].forEach(({ label, val, color }, i) => {
+        const cx = sColW * i + sColW / 2
         ctx.fillStyle = color
-        ctx.font = `400 28px "Anton", "Arial Black", sans-serif`
-        ctx.fillText(String(val), cx, statsBase + STATS_H * 0.5)
+        ctx.font = `400 24px "Anton", "Arial Black", sans-serif`
+        ctx.fillText(String(val), cx, sBase + STATS_H * 0.48)
         ctx.fillStyle = '#4a7a60'
-        ctx.font = `700 9px "Barlow Condensed", "Arial Narrow", sans-serif`
         ctx.letterSpacing = '1px'
-        ctx.fillText(label, cx, statsBase + STATS_H * 0.5 + 18)
+        ctx.font = `700 8px "Barlow Condensed", "Arial Narrow", sans-serif`
+        ctx.fillText(label, cx, sBase + STATS_H * 0.48 + 16)
         ctx.letterSpacing = '0px'
-        if (i < 3) vline(colW * (i + 1), statsBase, STATS_H)
+        if (i < 3) vline(sColW * (i + 1), sBase, STATS_H)
       })
-      line(statsBase + STATS_H)
+      hline(sBase + STATS_H)
 
-      // ── Player rows ─────────────────────────────────────────────
-      const rowsBase = statsBase + STATS_H
-      players.forEach((p, i) => {
-        const meta  = clubMeta(p.club || '')
-        const num   = p.club ? (JERSEY[p.club]?.[p.n] ?? i + 1) : i + 1
-        const rowY  = rowsBase + i * ROW_H
-        const midY  = rowY + ROW_H / 2
+      // ── Player grid (2 columns) ──────────────────────────────────
+      const pBase = sBase + STATS_H + COL_H
+      const drawPlayer = (p: typeof players[0], i: number, col: number, row: number) => {
+        const x0   = PAD + col * (COL_W + 1 + PAD)
+        const midY = pBase + row * ROW_H + ROW_H / 2
+        const meta = clubMeta(p.club || '')
+        const num  = p.club ? (JERSEY[p.club]?.[p.n] ?? i + 1) : i + 1
 
-        // Jersey number
+        // Jersey #
         ctx.fillStyle = '#3a6650'
-        ctx.font = `700 12px "Barlow Condensed", "Arial Narrow", sans-serif`
+        ctx.font = `700 10px "Barlow Condensed", "Arial Narrow", sans-serif`
         ctx.textAlign = 'right'
-        ctx.fillText(String(num), PAD + 20, midY)
+        ctx.fillText(String(num), x0 + 16, midY)
 
-        // Player name
-        ctx.fillStyle = '#eafff0'
-        ctx.font = `700 14px "Barlow", Arial, sans-serif`
+        // Name
+        ctx.fillStyle = '#e0f0e8'
+        ctx.font = `700 12px "Barlow", Arial, sans-serif`
         ctx.textAlign = 'left'
-        const nameMaxW = W - PAD * 2 - 36 - 90
-        ctx.fillText(cleanName(p.n), PAD + 30, midY, nameMaxW)
+        ctx.fillText(cleanName(p.n), x0 + 20, midY, COL_W - 72)
 
         // Country + year
-        ctx.fillStyle = '#4a7a60'
-        ctx.font = `600 11px "Barlow Condensed", "Arial Narrow", sans-serif`
+        ctx.fillStyle = '#3a6050'
+        ctx.font = `600 9px "Barlow Condensed", "Arial Narrow", sans-serif`
         ctx.textAlign = 'right'
-        ctx.fillText(`${meta.code} ${meta.year}`, W - PAD, midY)
+        ctx.fillText(`${meta.code} ${meta.year}`, x0 + COL_W, midY)
 
-        if (i < players.length - 1) line(rowY + ROW_H, 0.05)
+        // Row separator
+        if (row < HALF - 1 || (col === 0 && players.length % 2 === 0))
+          hline(pBase + (row + 1) * ROW_H, 0.04)
+      }
+
+      players.forEach((p, i) => {
+        const col = i < HALF ? 0 : 1
+        const row = i < HALF ? i : i - HALF
+        drawPlayer(p, i, col, row)
       })
 
+      // Vertical divider between columns
+      vline(PAD + COL_W + 1, pBase - COL_H / 2, PLAYERS_H - COL_H, 0.08)
+
       // ── Footer ──────────────────────────────────────────────────
-      const footerY = rowsBase + players.length * ROW_H
-      line(footerY, 0.06)
-      ctx.fillStyle = '#3a5a3a'
-      ctx.font = `400 11px "Barlow Condensed", "Arial Narrow", sans-serif`
+      const footerY = sBase + STATS_H + PLAYERS_H
+      hline(footerY, 0.06)
+      ctx.fillStyle = '#2e4a3a'
+      ctx.font = `400 9px "Barlow Condensed", "Arial Narrow", sans-serif`
       ctx.textAlign = 'center'
       ctx.fillText('sulalegends.com.br · monte o seu', W / 2, footerY + FOOTER_H / 2)
 
