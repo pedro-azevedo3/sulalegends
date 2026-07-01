@@ -22,8 +22,8 @@ const PREVIEW: SlotView[] = [
 ]
 
 const STEPS = [
-  { n: '01', title: 'ROLE',     desc: 'Sorteia um elenco finalista da Libertadores' },
-  { n: '02', title: 'MONTE',    desc: 'Escale um craque que jogou nesse clube' },
+  { n: '01', title: 'ROLE',     desc: 'Sorteie um elenco histórico de Libertadores' },
+  { n: '02', title: 'MONTE',    desc: 'Escale um craque desse time' },
   { n: '03', title: 'DISPUTE',  desc: 'Enfrente os 31 rivais na Copa SULALEGENDS' },
 ]
 
@@ -65,7 +65,7 @@ export default function HomeScreen({ onPlay }: Props) {
             </div>
 
             <p style={{ fontSize: 15, color: '#7fb5a0', lineHeight: 1.65, maxWidth: 400, margin: 0 }}>
-              Sai um elenco finalista da Libertadores. Escale um craque que esteve lá, complete os 11 e dispute o torneio — seu time conquista a glória?
+              Escolha um time histórico da Libertadores, escale um craque que esteve lá, complete os 11 e dispute o torneio! Será que seu time consegue conquistar a glória?
             </p>
 
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -127,7 +127,8 @@ export default function HomeScreen({ onPlay }: Props) {
             <button onClick={() => setModal('selecoes')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'Barlow Condensed',sans-serif", fontWeight: 700, fontSize: 13, letterSpacing: 2, color: '#9fd9b6', textTransform: 'uppercase', padding: '4px 0', borderBottom: '1px solid rgba(157,217,182,.3)', transition: 'color .15s' }}
               onMouseEnter={e => (e.currentTarget.style.color = '#2ee37a')}
               onMouseLeave={e => (e.currentTarget.style.color = '#9fd9b6')}
-            >SELEÇÕES</button>
+            >TIMES</button>
+
           </div>
 
           {/* ── Footer nav (bottom row) ── */}
@@ -151,7 +152,7 @@ export default function HomeScreen({ onPlay }: Props) {
 
       {/* ── Modals ── */}
       {modal === 'selecoes' && (
-        <Modal title={`Seleções · ${allClubs.length} elencos históricos`} onClose={() => setModal(null)}>
+        <Modal title={`Times · ${allClubs.length} elencos históricos`} onClose={() => setModal(null)}>
           <p style={{ color: '#9fb8aa', fontSize: 13, marginTop: 0 }}>Todos os elencos disponíveis para o sorteio. Cada partida você sorteado um diferente.</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 12 }}>
             {allClubs.sort().map(club => (

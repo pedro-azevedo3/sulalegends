@@ -7,7 +7,7 @@ export const DB: Record<string, PlayerTuple[]> = {
   'Santos 1963': [
     ['Gilmar','GOL',88],['Lima','LD',82],['Mauro Ramos','ZAG',85],['Calvet','ZAG',81],
     ['Dalmo','LE',80],['Zito','VOL',86],['Mengálvio','MC',83],['Dorval','PD',82],
-    ['Coutinho','ATA',88],['Pelé','MEI',99],['Pepe','PE',88],['Pagão','ATA',80],
+    ['Coutinho','ATA',88],['Pelé','ATA',99],['Pepe','PE',88],['Pagão','ATA',80],
   ],
   'São Paulo 2005': [
     ['Rogério Ceni','GOL',91],['Cicinho','LD',84],['Fabão','ZAG',82],['Diego Lugano','ZAG',85],
