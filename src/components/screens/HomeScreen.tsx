@@ -27,7 +27,7 @@ const STEPS = [
   { n: '03', title: 'DISPUTE',  desc: 'Enfrente os 31 rivais na Copa SULALEGENDS' },
 ]
 
-type Section = 'copas' | 'selecoes' | 'como-jogar' | 'sobre' | 'faq' | 'termos' | 'privacidade' | null
+type Section = 'selecoes' | 'como-jogar' | 'sobre' | 'faq' | 'termos' | 'privacidade' | null
 
 interface Props { onPlay: () => void }
 
@@ -124,12 +124,10 @@ export default function HomeScreen({ onPlay }: Props) {
         {/* ── Footer nav (top row) ── */}
         <div style={{ borderTop: '1px solid rgba(255,255,255,.06)', background: 'rgba(0,0,0,.2)' }}>
           <div style={{ maxWidth: 1120, margin: '0 auto', padding: '14px 24px 0', display: 'flex', justifyContent: 'center', gap: 32 }}>
-            {([['copas','COPAS'], ['selecoes','SELEÇÕES']] as [Section, string][]).map(([id, label]) => (
-              <button key={id} onClick={() => setModal(id)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'Barlow Condensed',sans-serif", fontWeight: 700, fontSize: 13, letterSpacing: 2, color: '#9fd9b6', textTransform: 'uppercase', padding: '4px 0', borderBottom: '1px solid rgba(157,217,182,.3)', transition: 'color .15s' }}
-                onMouseEnter={e => (e.currentTarget.style.color = '#2ee37a')}
-                onMouseLeave={e => (e.currentTarget.style.color = '#9fd9b6')}
-              >{label}</button>
-            ))}
+            <button onClick={() => setModal('selecoes')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'Barlow Condensed',sans-serif", fontWeight: 700, fontSize: 13, letterSpacing: 2, color: '#9fd9b6', textTransform: 'uppercase', padding: '4px 0', borderBottom: '1px solid rgba(157,217,182,.3)', transition: 'color .15s' }}
+              onMouseEnter={e => (e.currentTarget.style.color = '#2ee37a')}
+              onMouseLeave={e => (e.currentTarget.style.color = '#9fd9b6')}
+            >SELEÇÕES</button>
           </div>
 
           {/* ── Footer nav (bottom row) ── */}
@@ -145,34 +143,13 @@ export default function HomeScreen({ onPlay }: Props) {
           {/* ── Bottom credit ── */}
           <div style={{ borderTop: '1px solid rgba(255,255,255,.04)', padding: '10px 24px', textAlign: 'center' }}>
             <span style={{ fontFamily: "'Barlow Condensed',sans-serif", fontSize: 11, color: '#2e4a3a', letterSpacing: 1 }}>
-              SULALEGENDS · sulalegends.com.br · contato@sulalegends.com.br
+              SULALEGENDS · sulalegends.com.br · sulalegends@gmail.com
             </span>
           </div>
         </div>
       </div>
 
       {/* ── Modals ── */}
-      {modal === 'copas' && (
-        <Modal title="Copas" onClose={() => setModal(null)}>
-          <p style={{ color: '#f5c84b', fontFamily: "'Anton',sans-serif", fontSize: 20, margin: '0 0 12px' }}>Copa SULALEGENDS</p>
-          <p>Dispute a <b style={{ color: '#fff' }}>Copa Libertadores da América</b> com o time que você montou no draft. O torneio replica o formato oficial com 32 clubes históricos.</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 16 }}>
-            {[
-              ['🏆 Fase de Grupos','8 grupos de 4 — 3 jogos de ida e 3 de volta'],
-              ['⚔ Oitavas de Final','Jogo de ida e jogo de volta · gols fora decidem'],
-              ['⚔ Quartas de Final','Jogo de ida e jogo de volta · gols fora decidem'],
-              ['⚔ Semifinais','Jogo de ida e jogo de volta · gols fora decidem'],
-              ['🥅 Grande Final','Jogo único — pênaltis se empatar'],
-            ].map(([title, desc]) => (
-              <div key={title} style={{ background: 'rgba(255,255,255,.04)', borderRadius: 10, padding: '10px 14px' }}>
-                <div style={{ fontFamily: "'Barlow Condensed',sans-serif", fontWeight: 700, fontSize: 13, color: '#2ee37a', marginBottom: 3 }}>{title}</div>
-                <div style={{ fontSize: 13, color: '#9fb8aa' }}>{desc}</div>
-              </div>
-            ))}
-          </div>
-        </Modal>
-      )}
-
       {modal === 'selecoes' && (
         <Modal title={`Seleções · ${allClubs.length} elencos históricos`} onClose={() => setModal(null)}>
           <p style={{ color: '#9fb8aa', fontSize: 13, marginTop: 0 }}>Todos os elencos disponíveis para o sorteio. Cada partida você sorteado um diferente.</p>
