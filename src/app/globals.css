@@ -1,7 +1,12 @@
 @import "tailwindcss";
 
 *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-body { margin: 0; }
+body {
+  margin: 0;
+  /* Overscroll / bounce area on iOS and Android matches the dark green theme */
+  background-color: #060c09;
+  overscroll-behavior: none;
+}
 
 @keyframes pulse {
   0%,100% { box-shadow: 0 0 0 3px rgba(245,200,75,.25); }
