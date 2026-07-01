@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useRef } from 'react'
 import type { GameState } from '@/lib/game'
 import { cleanName } from '@/lib/game'
 
@@ -9,6 +10,51 @@ const SPEEDS = [
   { value: 2,   label: '2×' },
   { value: 4,   label: '4×' },
 ]
+
+// ── Detects if the current match result eliminates the user ───────────────────
+// Returns true only when the tie is definitively lost (not a draw → penalties).
+function wouldEliminateUser(state: GameState): boolean {
+  const { tournamentCtx, libertadores, scoreP, scoreC } = state
+  if (!tournamentCtx || !libertadores) return false
+
+  const { matchId, isUserHome } = tournamentCtx
+  const match = libertadores.matches[matchId]
+  if (!match) return false
+
+  // Group stage: a single loss ≠ elimination
+  if (match.phase === 'groups') return false
+
+  const userGoals = scoreP
+  const oppGoals  = scoreC
+
+  // Final (single leg, pre-filled 0-0 leg2): strictly fewer goals = eliminated
+  if (match.phase === 'final') return oppGoals > userGoals
+
+  // Two-legged knockout: only decisive on leg 2
+  const tie = libertadores.ties.find(t =>
+    t.leg1Id === matchId || t.leg2Id === matchId
+  )
+  if (!tie || matchId !== tie.leg2Id) return false // leg1 doesn't decide alone
+
+  const leg1 = libertadores.matches[tie.leg1Id]
+  if (!leg1?.played) return false
+
+  // leg2 home = clubB, leg2 away = clubA
+  const leg2Home = isUserHome ? userGoals : oppGoals
+  const leg2Away = isUserHome ? oppGoals  : userGoals
+
+  const aggA = (leg1.homeGoals ?? 0) + leg2Away   // clubA total
+  const aggB = (leg1.awayGoals ?? 0) + leg2Home   // clubB total
+
+  const userIsA = tie.clubA === 'SULALEGENDS'
+  const userAgg = userIsA ? aggA : aggB
+  const oppAgg  = userIsA ? aggB : aggA
+
+  // Strictly fewer goals → eliminated; equal → penalties (not elimination)
+  return oppAgg > userAgg
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 interface Props {
   state: GameState
@@ -20,9 +66,20 @@ interface Props {
 
 export default function MatchScreen({ state, onSkip, onFinish, onNextMatch, onSetSpeed }: Props) {
   const { sim, scoreP, scoreC, simDone, tournamentCtx, simSpeed, currentMinute } = state
+  const autoRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const inTournament = !!tournamentCtx
+  const eliminated   = simDone && inTournament && wouldEliminateUser(state)
+
+  // When the user is eliminated: auto-redirect to defeat card after 3s
+  useEffect(() => {
+    if (!eliminated) return
+    autoRef.current = setTimeout(() => onFinish(), 3000)
+    return () => { if (autoRef.current) clearTimeout(autoRef.current) }
+  }, [eliminated, onFinish])
+
   if (!sim) return null
 
-  const inTournament  = !!tournamentCtx
   const phaseLabel    = tournamentCtx?.phaseLabel ?? ''
   const opponentName  = inTournament ? tournamentCtx!.opponentClub : sim.cpuName
   const isUserHome    = !inTournament || tournamentCtx!.isUserHome
@@ -36,7 +93,6 @@ export default function MatchScreen({ state, onSkip, onFinish, onNextMatch, onSe
   const leftColor     = isUserHome ? '#2ee37a' : '#ff8f6a'
   const rightColor    = isUserHome ? '#ff8f6a' : '#2ee37a'
 
-  // Goals only count once the match clock reaches that exact minute
   const revealed = sim.events.filter(e => e.min <= currentMinute)
   const noGoals  = simDone && sim.events.length === 0
   const clockMinute = Math.min(currentMinute, 90)
@@ -64,46 +120,25 @@ export default function MatchScreen({ state, onSkip, onFinish, onNextMatch, onSe
 
       {/* Match clock */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0,
-          background: simDone ? 'rgba(255,255,255,.06)' : 'rgba(46,227,122,.1)',
-          border: `1px solid ${simDone ? 'rgba(255,255,255,.15)' : 'rgba(46,227,122,.3)'}`,
-          borderRadius: 99, padding: '6px 14px',
-        }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, background: simDone ? 'rgba(255,255,255,.06)' : 'rgba(46,227,122,.1)', border: `1px solid ${simDone ? 'rgba(255,255,255,.15)' : 'rgba(46,227,122,.3)'}`, borderRadius: 99, padding: '6px 14px' }}>
           {!simDone && <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#2ee37a', display: 'inline-block', animation: 'pulse 1.1s infinite' }} />}
-          <span style={{ fontFamily: "'Anton',sans-serif", fontSize: 18, color: simDone ? '#9fb8aa' : '#2ee37a', letterSpacing: .5 }}>
-            {clockMinute}'
-          </span>
+          <span style={{ fontFamily: "'Anton',sans-serif", fontSize: 18, color: simDone ? '#9fb8aa' : '#2ee37a', letterSpacing: .5 }}>{clockMinute}'</span>
         </div>
-        {/* Progress bar 0-90 */}
         <div style={{ flex: 1, height: 6, background: 'rgba(255,255,255,.08)', borderRadius: 99, overflow: 'hidden' }}>
           <div style={{ height: '100%', width: `${(clockMinute / 90) * 100}%`, background: 'linear-gradient(90deg,#2ee37a,#f5c84b)', borderRadius: 99, transition: 'width .15s linear' }} />
         </div>
       </div>
 
-      {/* Status + Speed controls */}
+      {/* Status + Speed */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
         <div style={{ fontFamily: "'Barlow Condensed',sans-serif", letterSpacing: 2, textTransform: 'uppercase', color: '#9fd9b6', fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', gap: 8 }}>
           {!simDone && <><span style={{ display: 'inline-block', animation: 'ballspin 1s linear infinite' }}>⚽</span> Narração ao vivo…</>}
           {simDone && <>🏁 Fim de jogo</>}
         </div>
-
-        {/* Speed selector */}
         {!simDone && (
           <div style={{ display: 'flex', gap: 4 }}>
             {SPEEDS.map(s => (
-              <button
-                key={s.value}
-                onClick={() => onSetSpeed(s.value)}
-                style={{
-                  padding: '4px 10px', borderRadius: 7, fontSize: 12,
-                  fontFamily: "'Barlow Condensed',sans-serif", fontWeight: 700, letterSpacing: .5,
-                  border: `1px solid ${simSpeed === s.value ? 'rgba(245,200,75,.6)' : 'rgba(255,255,255,.15)'}`,
-                  background: simSpeed === s.value ? 'rgba(245,200,75,.18)' : 'rgba(255,255,255,.04)',
-                  color: simSpeed === s.value ? '#f5c84b' : '#6a8a78',
-                  cursor: 'pointer', transition: 'all .12s',
-                }}
-              >
+              <button key={s.value} onClick={() => onSetSpeed(s.value)} style={{ padding: '4px 10px', borderRadius: 7, fontSize: 12, fontFamily: "'Barlow Condensed',sans-serif", fontWeight: 700, letterSpacing: .5, border: `1px solid ${simSpeed === s.value ? 'rgba(245,200,75,.6)' : 'rgba(255,255,255,.15)'}`, background: simSpeed === s.value ? 'rgba(245,200,75,.18)' : 'rgba(255,255,255,.04)', color: simSpeed === s.value ? '#f5c84b' : '#6a8a78', cursor: 'pointer', transition: 'all .12s' }}>
                 {s.label}
               </button>
             ))}
@@ -114,14 +149,9 @@ export default function MatchScreen({ state, onSkip, onFinish, onNextMatch, onSe
       {/* Events */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 7, minHeight: 100, flex: 1 }}>
         {revealed.map((e, i) => (
-          <div key={i} style={{
-            display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderRadius: 11,
-            animation: 'fadeUp .25s ease both',
-            background: e.team === 'p' ? 'linear-gradient(90deg,rgba(46,227,122,.14),rgba(46,227,122,.03))' : 'linear-gradient(90deg,rgba(255,143,106,.12),rgba(255,143,106,.03))',
-            border: `1px solid ${e.team === 'p' ? 'rgba(46,227,122,.25)' : 'rgba(255,143,106,.22)'}`,
-          }}>
+          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderRadius: 11, animation: 'fadeUp .25s ease both', background: e.team === 'p' ? 'linear-gradient(90deg,rgba(46,227,122,.14),rgba(46,227,122,.03))' : 'linear-gradient(90deg,rgba(255,143,106,.12),rgba(255,143,106,.03))', border: `1px solid ${e.team === 'p' ? 'rgba(46,227,122,.25)' : 'rgba(255,143,106,.22)'}` }}>
             <div style={{ fontFamily: "'Anton',sans-serif", fontSize: 16, color: '#f5c84b', minWidth: 36 }}>{e.min}'</div>
-            <div style={{ fontSize: 18 }}>⚽</div>
+            <div style={{ fontSize: 20 }}>⚽</div>
             <div style={{ flex: 1 }}>
               <b style={{ color: '#fff', fontSize: 15 }}>{cleanName(e.scorer)}</b>
               <div style={{ fontSize: 12, color: '#9fb8aa' }}>{e.teamName}</div>
@@ -139,7 +169,15 @@ export default function MatchScreen({ state, onSkip, onFinish, onNextMatch, onSe
           </button>
         )}
 
-        {simDone && inTournament && (
+        {/* Eliminated → auto-redirect, show countdown message only */}
+        {simDone && eliminated && (
+          <div style={{ textAlign: 'center', fontFamily: "'Barlow Condensed',sans-serif", fontSize: 14, color: '#ff5e3a', letterSpacing: 1, animation: 'fadeUp .3s ease both' }}>
+            Eliminado — indo para os resultados…
+          </div>
+        )}
+
+        {/* Not eliminated and not auto-redirecting → show action buttons */}
+        {simDone && !eliminated && inTournament && (
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
             {onNextMatch && (
               <button onClick={onNextMatch} style={{ background: 'linear-gradient(135deg,#2ee37a,#16a34a)', color: '#04140d', fontFamily: "'Anton',sans-serif", letterSpacing: 1, fontSize: 17, padding: '14px 28px', border: 'none', borderRadius: 12, cursor: 'pointer', boxShadow: '0 5px 0 #0d7a36', transition: 'transform .12s', whiteSpace: 'nowrap' }} onMouseDown={e => (e.currentTarget.style.transform = 'translateY(3px)')} onMouseUp={e => (e.currentTarget.style.transform = '')} onMouseLeave={e => (e.currentTarget.style.transform = '')}>

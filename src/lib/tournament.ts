@@ -182,13 +182,7 @@ export function resolveTieRegulation(tie: TTie, m1: TMatch, m2: TMatch): TTie {
   if (aggA > aggB) return { ...tie, aggA, aggB, winner: tie.clubA, needsPenalties: false }
   if (aggB > aggA) return { ...tie, aggA, aggB, winner: tie.clubB, needsPenalties: false }
 
-  if (tie.phase !== 'final') {
-    const awayA = m2.awayGoals ?? 0   // clubA's goals scored away (in leg2)
-    const awayB = m1.awayGoals ?? 0   // clubB's goals scored away (in leg1)
-    if (awayA > awayB) return { ...tie, aggA, aggB, winner: tie.clubA, needsPenalties: false }
-    if (awayB > awayA) return { ...tie, aggA, aggB, winner: tie.clubB, needsPenalties: false }
-  }
-
+  // Equal aggregate → straight to penalties (no away-goals rule)
   return { ...tie, aggA, aggB, winner: null, needsPenalties: true }
 }
 
