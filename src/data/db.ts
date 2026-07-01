@@ -250,8 +250,8 @@ export const DB: Record<string, PlayerTuple[]> = {
     ['Lunari','MC',79],['Garfagnoli','ZAG',78],
   ],
   'Boca Juniors 2001': [
-    ['Óscar Córdoba','GOL',85],['Hugo Ibarra','LD',82],['Jorge Bermúdez','ZAG',84],['Aníbal Matellán','ZAG',79],
-    ['Mauricio Serna','VOL',81],['Sebastián Battaglia','VOL',82],['Traverso','MC',79],
+    ['Óscar Córdoba','GOL',85],['Hugo Ibarra','LD',82],['Jorge Bermúdez','ZAG',84],['Walter Samuel','ZAG',86],
+    ['Aníbal Matellán','LE',79],['Mauricio Serna','VOL',81],['Sebastián Battaglia','VOL',82],['Traverso','MC',79],
     ['Riquelme','MEI',91],['Barros Schelotto','MD',85],['Martín Palermo','ATA',87],
     ['Tevez 01','ATA',80],
   ],
